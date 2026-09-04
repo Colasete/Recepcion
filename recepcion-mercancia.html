@@ -213,7 +213,8 @@
 .rm-card-meta { font-size: 11px; color: var(--ink-soft); margin: 0 0 6px 0; line-height: 1.5; }
 .rm-card-meta b { color: var(--ink); font-weight: 500; }
 .rm-chip { display: inline-block; font-size: 10.5px; padding: 2px 8px; border-radius: 20px; background: #EDF0F2; color: var(--navy); margin-bottom: 6px; margin-right: 4px; }
-.rm-track-link { display: inline-block; font-size: 10.5px; color: #2F7C77; text-decoration: none; border-bottom: 1px dotted #2F7C77; margin-bottom: 6px; }
+.rm-track-btn { display: inline-block; font-size: 11px; font-weight: 600; color: #fff; background: #2F7C77; text-decoration: none; border-radius: var(--radius); padding: 5px 10px; margin: 2px 0 6px 0; }
+.rm-track-btn:hover { background: #256560; }
 .rm-card-update { font-size: 10.5px; color: var(--ink-soft); border-top: 1px dashed var(--line); padding-top: 5px; margin-top: 2px; }
 .rm-card-notas { font-size: 11px; color: var(--ink-soft); border-top: 1px dashed var(--line); padding-top: 6px; margin-top: 2px; white-space: pre-wrap; }
 .rm-card-actions { display: flex; gap: 5px; margin-top: 8px; justify-content: flex-end; }
@@ -982,7 +983,7 @@
       ${a.bultosEsperados ? '<span class="rm-chip" style="' + ((a.bultosEscaneados||0) >= a.bultosEsperados ? 'background:#EAF5EE;color:#2A6B41;' : '') + '">Bultos: ' + (a.bultosEscaneados||0) + '/' + a.bultosEsperados + '</span>' : ''}
       ${a.bultosEsperados && (a.bultosEsperados - (a.bultosEscaneados||0)) > 0 ? '<span class="rm-chip" style="background:var(--amber-soft);color:#8A5A11;">Faltan ' + (a.bultosEsperados - (a.bultosEscaneados||0)) + '</span>' : ''}
       ${a.incidencias && a.incidencias.length ? '<span class="rm-chip" style="background:#FBEBE7;color:#A2402A;">⚠️ ' + a.incidencias.length + ' incidencia' + (a.incidencias.length>1?'s':'') + '</span>' : ''}
-      ${(function(){ const url = buildTrackingUrl(a); return url ? '<br/><a class="rm-track-link" href="' + escapeAttr(url) + '" target="_blank" rel="noopener">Ver seguimiento ↗</a>' : ''; })()}
+      ${(function(){ const url = buildTrackingUrl(a); return url ? '<br/><a class="rm-track-btn" href="' + escapeAttr(url) + '" target="_blank" rel="noopener">📍 Ver seguimiento ↗</a>' : ''; })()}
       ${a.fechaRecepcion ? '<p class="rm-card-meta"><b>Recibido:</b> ' + formatFecha(a.fechaRecepcion) + (pt ? ' <span style="color:' + (pt.late ? '#A2402A' : '#2A6B41') + '">(' + pt.text + ')</span>' : '') + '</p>' : ''}
       ${lastH ? '<div class="rm-card-update">Última novedad ' + formatDateTime(lastH.ts) + ' (' + timeAgo(lastH.ts) + '): ' + escapeHtml(lastH.texto) + '</div>' : ''}
       ${a.notas ? '<div class="rm-card-notas">' + escapeHtml(a.notas) + '</div>' : ''}
@@ -1120,6 +1121,7 @@
             <p class="rm-notif-hint" style="margin-top:4px;">Déjalo en blanco y, si el transportista tiene un enlace configurado en "🔗 Transportistas" (cabecera), se generará solo con el nº de seguimiento.</p>
           </div>
           ${a ? '<button type="button" class="rm-btn-ghost" id="rm-add-gcal" style="margin-bottom:10px;">📅 Añadir a Google Calendar</button>' : ''}
+          ${(function(){ if (!a) return ''; const url = buildTrackingUrl(a); return url ? '<a class="rm-track-btn" href="' + escapeAttr(url) + '" target="_blank" rel="noopener" style="margin-left:8px;">📍 Ver seguimiento ↗</a>' : ''; })()}
           ${a && a.bultosEsperados ? '<p class="rm-notif-hint">Recepción: ' + (a.bultosEscaneados || 0) + ' / ' + a.bultosEsperados + ' bultos escaneados. Usa "📦 Escanear recepción" en la cabecera para registrar bultos.</p>' : ''}
 
           <div class="rm-row2">
