@@ -215,6 +215,7 @@
 .rm-chip { display: inline-block; font-size: 10.5px; padding: 2px 8px; border-radius: 20px; background: #EDF0F2; color: var(--navy); margin-bottom: 6px; margin-right: 4px; }
 .rm-track-btn { display: inline-block; font-size: 11px; font-weight: 600; color: #fff; background: #2F7C77; text-decoration: none; border-radius: var(--radius); padding: 5px 10px; margin: 2px 0 6px 0; }
 .rm-track-btn:hover { background: #256560; }
+.rm-track-btn-sm { padding: 4px 8px; font-size: 10.5px; margin: 0 0 0 8px; flex-shrink: 0; }
 .rm-card-update { font-size: 10.5px; color: var(--ink-soft); border-top: 1px dashed var(--line); padding-top: 5px; margin-top: 2px; }
 .rm-card-notas { font-size: 11px; color: var(--ink-soft); border-top: 1px dashed var(--line); padding-top: 6px; margin-top: 2px; white-space: pre-wrap; }
 .rm-card-actions { display: flex; gap: 5px; margin-top: 8px; justify-content: flex-end; }
@@ -911,6 +912,7 @@
         const badge = dateBadge(fechaActual(a), a.estado);
         const pt = a.fechaRecepcion ? puntualidad(a.fecha, a.fechaRecepcion) : null;
         const est = (a.fechaEstimada && a.fechaEstimada !== a.fecha && a.estado !== 'recibido') ? puntualidad(a.fecha, a.fechaEstimada) : null;
+        const trackUrl = buildTrackingUrl(a);
         return `
           <div class="rm-carrier-row" data-id="${a.id}">
             <span class="rm-cr-fecha">${formatFecha(a.fecha)}</span>
@@ -926,6 +928,7 @@
               ${a.fechaRecepcion ? ' · recibido ' + formatFecha(a.fechaRecepcion) : ''}
               ${pt ? ' · <span style="color:' + (pt.late ? '#A2402A' : '#2A6B41') + '">' + pt.text + '</span>' : ''}
             </span>
+            ${trackUrl ? '<a class="rm-track-btn rm-track-btn-sm" href="' + escapeAttr(trackUrl) + '" target="_blank" rel="noopener" onclick="event.stopPropagation();">📍 Seguimiento ↗</a>' : ''}
           </div>
         `;
       }).join('');
