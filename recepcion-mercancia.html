@@ -149,6 +149,7 @@
 .rm-cr-estado { font-size: 10.5px; padding: 2px 8px; border-radius: 20px; color: #fff; white-space: nowrap; }
 .rm-cr-meta { color: var(--ink-soft); font-size: 11px; }
 .rm-overlay-top { z-index: 60; }
+.rm-overlay-toast { z-index: 80; }
 .rm-incidencia-modal { max-width: 440px; }
 .rm-sig-wrap { border: 1px solid var(--line); border-radius: var(--radius); background: #fff; touch-action: none; }
 .rm-sig-canvas { display: block; width: 100%; height: 140px; cursor: crosshair; }
@@ -382,6 +383,47 @@
     return String(str || '').replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
   }
   function escapeAttr(str){ return escapeHtml(str); }
+
+  // Los diálogos nativos (alert/confirm) no son fiables dentro del sandbox de este artefacto
+  // (se descartan en silencio), así que usamos estos equivalentes propios en su lugar.
+  function customAlert(message){
+    return new Promise(resolve => {
+      const overlay = document.createElement('div');
+      overlay.className = 'rm-overlay rm-overlay-toast';
+      overlay.innerHTML = `
+        <div class="rm-modal" style="max-width:360px;">
+          <p style="margin:0 0 16px 0; white-space:pre-line;">${escapeHtml(message)}</p>
+          <div class="rm-modal-actions">
+            <div></div>
+            <div><button type="button" class="rm-btn-primary" id="rm-alert-ok">Aceptar</button></div>
+          </div>
+        </div>
+      `;
+      root.appendChild(overlay);
+      document.getElementById('rm-alert-ok').addEventListener('click', () => { overlay.remove(); resolve(); });
+    });
+  }
+
+  function customConfirm(message){
+    return new Promise(resolve => {
+      const overlay = document.createElement('div');
+      overlay.className = 'rm-overlay rm-overlay-toast';
+      overlay.innerHTML = `
+        <div class="rm-modal" style="max-width:380px;">
+          <p style="margin:0 0 16px 0; white-space:pre-line;">${escapeHtml(message)}</p>
+          <div class="rm-modal-actions">
+            <div><button type="button" class="rm-btn-ghost" id="rm-confirm-no">Cancelar</button></div>
+            <div><button type="button" class="rm-btn-primary" id="rm-confirm-yes">Aceptar</button></div>
+          </div>
+        </div>
+      `;
+      root.appendChild(overlay);
+      overlay.addEventListener('click', e => { if (e.target === overlay) { overlay.remove(); resolve(false); } });
+      document.getElementById('rm-confirm-no').addEventListener('click', () => { overlay.remove(); resolve(false); });
+      document.getElementById('rm-confirm-yes').addEventListener('click', () => { overlay.remove(); resolve(true); });
+    });
+  }
+
 
   function puntualidad(fechaPrevista, fechaRecepcion){
     if (!fechaPrevista || !fechaRecepcion) return null;
@@ -840,7 +882,7 @@
 
   notifBtn.addEventListener('click', () => {
     if (typeof Notification === 'undefined') {
-      alert('Este navegador no admite avisos del sistema.');
+      customAlert('Este navegador no admite avisos del sistema.');
       return;
     }
     Notification.requestPermission().then(perm => {
@@ -1270,8 +1312,8 @@
     overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
     document.getElementById('rm-cancel').addEventListener('click', closeModal);
     const delBtn = document.getElementById('rm-delete');
-    if (delBtn) delBtn.addEventListener('click', () => {
-      if (confirm('¿Eliminar esta llegada del tablero?')) {
+    if (delBtn) delBtn.addEventListener('click', async () => {
+      if (await customConfirm('¿Eliminar esta llegada del tablero?')) {
         arrivals = arrivals.filter(x => x.id !== editingId);
         closeModal();
         render();
@@ -1349,8 +1391,8 @@
         fechaRecepcion: fval('fechaRecepcion') || null,
         notas: fval('notas').trim()
       };
-      if (!data.proveedor) { alert('Indica el proveedor.'); return; }
-      if (!data.fecha) { alert('Indica la fecha prevista.'); return; }
+      if (!data.proveedor) { customAlert('Indica el proveedor.'); return; }
+      if (!data.fecha) { customAlert('Indica la fecha prevista.'); return; }
       if (data.estado === 'recibido' && !data.fechaRecepcion) data.fechaRecepcion = todayStr();
       if (editingId) {
         const existing = arrivals.find(x => x.id === editingId);
@@ -1505,7 +1547,7 @@
 
     document.getElementById('rm-inc-save').addEventListener('click', async () => {
       const descripcion = document.getElementById('rm-inc-desc').value.trim();
-      if (!descripcion) { alert('Describe brevemente el daño antes de guardar.'); return; }
+      if (!descripcion) { await customAlert('Describe brevemente el daño antes de guardar.'); return; }
       const firmante = document.getElementById('rm-inc-firmante').value.trim();
 
       const faltan = [];
@@ -1513,7 +1555,7 @@
       if (sigPad.isEmpty()) faltan.push('firma del repartidor');
       if (!firmante) faltan.push('nombre del repartidor');
       if (faltan.length) {
-        const continuar = confirm('Falta por rellenar: ' + faltan.join(', ') + '.\n\nPulsa "Aceptar" para continuar y guardar la incidencia sin esos datos, o "Cancelar" para volver y rellenarlos.');
+        const continuar = await customConfirm('Falta por rellenar: ' + faltan.join(', ') + '.\n\nPulsa "Aceptar" para continuar y guardar la incidencia sin esos datos, o "Cancelar" para volver y rellenarlos.');
         if (!continuar) return;
       }
 
@@ -1545,7 +1587,7 @@
         render();
         if (onSaved) onSaved();
       } catch (err) {
-        alert('No se pudo guardar la incidencia (revisa la conexión). Inténtalo de nuevo.');
+        await customAlert('No se pudo guardar la incidencia (revisa la conexión). Inténtalo de nuevo.');
         saveBtn.disabled = false;
         saveBtn.textContent = 'Guardar incidencia';
       }
@@ -1565,7 +1607,7 @@
       const res = await window.storage.get(key, true);
       if (res && res.value) openLightbox(res.value);
     } catch (e) {
-      alert('No se pudo cargar la imagen.');
+      customAlert('No se pudo cargar la imagen.');
     }
   }
 
