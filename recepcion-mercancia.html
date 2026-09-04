@@ -298,6 +298,7 @@
     <div style="display:flex; gap:8px; flex-wrap:wrap;">
       <button class="rm-add-btn" id="rm-open-scan" style="background:#fff; color:var(--navy);">📦 Escanear recepción</button>
       <button class="rm-add-btn" id="rm-open-carriers" style="background:#fff; color:var(--navy);">🔗 Transportistas</button>
+      <button class="rm-add-btn" id="rm-open-emails" style="background:#fff; color:var(--navy);">✉️ Emails</button>
       <button class="rm-add-btn" id="rm-open-add">+ Nueva llegada</button>
     </div>
   </div>
@@ -343,8 +344,10 @@
   let notifEnabled = false;
   let viewMode = 'kanban'; // 'kanban' | 'carrier'
   let carrierLinks = {}; // { 'seur': 'https://.../{tracking}', ... } normalizado en minúsculas sin acentos
+  let avisoEmails = []; // lista configurable de emails para el desplegable de avisos por llegada
 
   const CARRIER_LINKS_KEY = 'recepcion-mercancia-carrier-links';
+  const AVISO_EMAILS_KEY = 'recepcion-mercancia-aviso-emails';
   const DEFAULT_CARRIER_LINKS = {
     'seur': 'https://www.seur.com/livetracking/',
     'correos express': 'https://www.correosexpress.com/es/seguimiento',
@@ -515,6 +518,77 @@
     } catch (e) { /* se reintentará la próxima vez que se guarde */ }
   }
 
+  async function loadAvisoEmails(){
+    try {
+      const res = await window.storage.get(AVISO_EMAILS_KEY, true);
+      avisoEmails = (res && res.value) ? JSON.parse(res.value) : [];
+    } catch (e) {
+      avisoEmails = [];
+    }
+  }
+
+  async function saveAvisoEmails(){
+    try {
+      await window.storage.set(AVISO_EMAILS_KEY, JSON.stringify(avisoEmails), true);
+    } catch (e) { /* se reintentará la próxima vez que se guarde */ }
+  }
+
+  function openEmailsModal(){
+    const overlay = document.createElement('div');
+    overlay.className = 'rm-overlay';
+    overlay.id = 'rm-emails-overlay';
+
+    overlay.innerHTML = `
+      <div class="rm-modal">
+        <h2>Emails para avisos de recepción</h2>
+        <p class="rm-notif-hint">Añade aquí los correos de quienes deban recibir el aviso 2 días y 1 día antes de la fecha estimada de recepción. Luego, en cada llegada, se elige a cuál de estos avisar desde un desplegable.</p>
+        <ul class="rm-historial" id="rm-emails-list">
+          ${avisoEmails.map((em, i) => `<li style="display:flex; justify-content:space-between; align-items:center;">${escapeHtml(em)}<button type="button" class="rm-icon-btn" data-del="${i}">Quitar</button></li>`).join('') || '<li>Sin emails añadidos todavía.</li>'}
+        </ul>
+        <div class="rm-add-update">
+          <input type="email" id="rm-new-email" placeholder="nombre@empresa.com" />
+          <button type="button" id="rm-add-email-btn">Añadir</button>
+        </div>
+        <p class="rm-notif-hint" style="color:#8A5A11;">El envío automático de estos avisos por email todavía no está activo: falta terminar de desplegar el servicio que los manda (backend en Vercel). Esta lista queda lista para cuando se active.</p>
+        <div class="rm-modal-actions">
+          <div></div>
+          <div style="display:flex; gap:8px;">
+            <button type="button" class="rm-btn-primary" id="rm-emails-close">Cerrar</button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    root.appendChild(overlay);
+    overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+    document.getElementById('rm-emails-close').addEventListener('click', () => overlay.remove());
+
+    function refreshList(){
+      const list = document.getElementById('rm-emails-list');
+      list.innerHTML = avisoEmails.map((em, i) => `<li style="display:flex; justify-content:space-between; align-items:center;">${escapeHtml(em)}<button type="button" class="rm-icon-btn" data-del="${i}">Quitar</button></li>`).join('') || '<li>Sin emails añadidos todavía.</li>';
+      list.querySelectorAll('[data-del]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          avisoEmails.splice(parseInt(btn.dataset.del, 10), 1);
+          saveAvisoEmails();
+          refreshList();
+          render();
+        });
+      });
+    }
+    refreshList();
+
+    document.getElementById('rm-add-email-btn').addEventListener('click', () => {
+      const input = document.getElementById('rm-new-email');
+      const val = input.value.trim();
+      if (!val) return;
+      if (!avisoEmails.includes(val)) avisoEmails.push(val);
+      saveAvisoEmails();
+      input.value = '';
+      refreshList();
+      render();
+    });
+  }
+
   function openCarrierLinksModal(){
     const overlay = document.createElement('div');
     overlay.className = 'rm-overlay';
@@ -617,6 +691,7 @@
     }
     arrivals.forEach(a => { if (!a.historial) a.historial = []; });
     await loadCarrierLinks();
+    await loadAvisoEmails();
     lastSnapshot = JSON.parse(JSON.stringify(arrivals));
     statusMsg.textContent = '';
     render();
@@ -1019,6 +1094,14 @@
               <input type="text" name="responsable" value="${a ? escapeAttr(a.responsable || '') : ''}" />
             </div>
           </div>
+          <div class="rm-field">
+            <label>Avisar por email (2 y 1 día antes) a</label>
+            <select name="avisoEmail">
+              <option value="">Sin aviso</option>
+              ${avisoEmails.map(em => '<option value="' + escapeAttr(em) + '"' + (a && a.avisoEmail === em ? ' selected' : '') + '>' + escapeHtml(em) + '</option>').join('')}
+            </select>
+            ${avisoEmails.length === 0 ? '<p class="rm-notif-hint">Añade emails desde el botón "✉️ Emails" de la cabecera para poder elegir aquí.</p>' : ''}
+          </div>
 
           <h3>Seguimiento (rellena Compras)</h3>
           <div class="rm-row2">
@@ -1167,6 +1250,7 @@
         pedido: fval('pedido').trim(),
         cantidad: fval('cantidad').trim(),
         responsable: fval('responsable').trim(),
+        avisoEmail: fval('avisoEmail') || null,
         trackingNumero: fval('trackingNumero').trim(),
         trackingUrl: fval('trackingUrl').trim(),
         bultosEsperados: fval('bultosEsperados') ? parseInt(fval('bultosEsperados'), 10) : null,
@@ -1574,6 +1658,7 @@
 
   document.getElementById('rm-open-scan').addEventListener('click', openScanModal);
   document.getElementById('rm-open-carriers').addEventListener('click', openCarrierLinksModal);
+  document.getElementById('rm-open-emails').addEventListener('click', openEmailsModal);
   document.getElementById('rm-open-add').addEventListener('click', () => openModal(null));
   searchInput.addEventListener('input', e => { searchTerm = e.target.value; render(); });
   respSelect.addEventListener('change', e => { respFilter = e.target.value; render(); });
