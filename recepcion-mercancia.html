@@ -1,0 +1,1354 @@
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+#rm-root {
+  --bg: #F1F2EE;
+  --panel: #FFFFFF;
+  --ink: #1B2733;
+  --ink-soft: #5B6670;
+  --navy: #1F3A52;
+  --navy-dark: #16283A;
+  --amber: #D98A25;
+  --amber-soft: #FCEFDA;
+  --line: #DDE1DC;
+  --radius: 3px;
+  font-family: 'IBM Plex Mono', monospace;
+  color: var(--ink);
+  background: var(--bg);
+  min-height: 100%;
+  padding: 0 0 40px 0;
+  box-sizing: border-box;
+}
+#rm-root * { box-sizing: border-box; }
+#rm-root h1, #rm-root h2, #rm-root h3, #rm-root .rm-display {
+  font-family: 'Barlow Semi Condensed', sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.rm-header {
+  background: var(--navy);
+  color: #fff;
+  padding: 20px 22px 18px 22px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 14px;
+  flex-wrap: wrap;
+  border-bottom: 4px solid var(--amber);
+}
+.rm-header h1 { font-size: 28px; line-height: 1; margin: 0 0 4px 0; }
+.rm-header p { margin: 0; font-size: 12.5px; color: #C7D2DB; max-width: 480px; }
+.rm-add-btn {
+  background: var(--amber);
+  color: var(--navy-dark);
+  border: none;
+  font-family: 'Barlow Semi Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 16px;
+  padding: 10px 18px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.rm-add-btn:hover { background: #E4A248; }
+
+.rm-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 22px;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--line);
+  background: var(--panel);
+}
+.rm-toolbar input, .rm-toolbar select {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 13px;
+  padding: 7px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #fff;
+  color: var(--ink);
+}
+.rm-toolbar input { flex: 1 1 160px; min-width: 140px; }
+.rm-notif-btn {
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--navy);
+  font-size: 12px;
+  padding: 7px 10px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.rm-notif-btn.rm-on { background: #EAF5EE; border-color: #3E8A5B; color: #2A6B41; }
+.rm-summary { display: flex; gap: 8px; margin-left: auto; flex-wrap: wrap; }
+.rm-summary span { font-size: 11.5px; padding: 4px 9px; border-radius: 20px; border: 1px solid var(--line); color: var(--ink-soft); }
+
+.rm-avisos {
+  display: flex;
+  gap: 10px;
+  padding: 12px 22px 0 22px;
+  flex-wrap: wrap;
+}
+.rm-aviso {
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--ink-soft);
+  background: var(--panel);
+  border-radius: var(--radius);
+  padding: 8px 12px;
+  font-size: 12px;
+  cursor: pointer;
+  min-width: 150px;
+}
+.rm-aviso b { font-family: 'Barlow Semi Condensed', sans-serif; font-size: 16px; display: block; }
+.rm-aviso.rm-warn { border-left-color: #C0533B; }
+.rm-aviso.rm-today { border-left-color: #D98A25; }
+.rm-aviso.rm-update { border-left-color: #2F7C77; }
+.rm-aviso.rm-active { outline: 2px solid var(--navy); }
+.rm-clear-filter {
+  align-self: center;
+  font-size: 11px;
+  color: var(--ink-soft);
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.rm-tabs { display: flex; gap: 4px; padding: 12px 22px 0 22px; background: var(--panel); }
+.rm-tab {
+  background: none; border: 1px solid var(--line); border-bottom: none;
+  padding: 8px 16px; font-family: 'Barlow Semi Condensed', sans-serif; font-weight: 700;
+  font-size: 14.5px; color: var(--ink-soft); cursor: pointer; border-radius: 3px 3px 0 0;
+}
+.rm-tab.rm-tab-active { background: var(--bg); color: var(--navy); border-color: var(--line); position: relative; top: 1px; }
+
+.rm-carrier-view { padding: 4px 22px 18px 22px; }
+.rm-carrier-group {
+  background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+  margin-bottom: 14px; overflow: hidden;
+}
+.rm-carrier-head {
+  display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;
+  padding: 12px 14px; background: #F8F8F6; border-bottom: 1px solid var(--line); cursor: pointer;
+}
+.rm-carrier-head h3 { margin: 0; font-size: 18px; }
+.rm-carrier-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+.rm-carrier-pills span { font-size: 10.5px; padding: 3px 8px; border-radius: 20px; border: 1px solid var(--line); color: var(--ink-soft); }
+.rm-carrier-pills span.rm-p-warn { border-color: #C0533B; color: #A2402A; }
+.rm-carrier-pills span.rm-p-ok { border-color: #3E8A5B; color: #2A6B41; }
+.rm-carrier-rows { padding: 4px 0; }
+.rm-carrier-row {
+  display: flex; align-items: center; gap: 10px; padding: 9px 14px; border-bottom: 1px solid var(--line);
+  font-size: 12px; cursor: pointer; flex-wrap: wrap;
+}
+.rm-carrier-row:last-child { border-bottom: none; }
+.rm-carrier-row:hover { background: #FAFAF8; }
+.rm-cr-fecha { font-weight: 600; min-width: 76px; }
+.rm-cr-proveedor { font-family: 'Barlow Semi Condensed', sans-serif; font-weight: 700; font-size: 14.5px; flex: 1 1 140px; min-width: 120px; }
+.rm-cr-estado { font-size: 10.5px; padding: 2px 8px; border-radius: 20px; color: #fff; white-space: nowrap; }
+.rm-cr-meta { color: var(--ink-soft); font-size: 11px; }
+.rm-overlay-top { z-index: 60; }
+.rm-incidencia-modal { max-width: 440px; }
+.rm-sig-wrap { border: 1px solid var(--line); border-radius: var(--radius); background: #fff; touch-action: none; }
+.rm-sig-canvas { display: block; width: 100%; height: 140px; cursor: crosshair; }
+.rm-sig-actions { display: flex; justify-content: space-between; align-items: center; margin: 4px 0 10px 0; }
+.rm-sig-actions button { background: none; border: none; color: var(--ink-soft); font-size: 11px; cursor: pointer; text-decoration: underline; }
+.rm-photo-thumbs { display: flex; gap: 6px; flex-wrap: wrap; margin: 6px 0 4px 0; }
+.rm-photo-thumbs img { width: 56px; height: 56px; object-fit: cover; border-radius: 3px; border: 1px solid var(--line); cursor: pointer; }
+.rm-incidencia-item { border: 1px solid #EBD3CC; background: #FBEBE7; border-radius: var(--radius); padding: 9px 10px; margin-bottom: 8px; font-size: 11.5px; }
+.rm-incidencia-item .rm-h-time { color: var(--ink-soft); display: block; font-size: 10px; margin-bottom: 3px; }
+.rm-incidencia-item button { font-size: 10.5px; margin-right: 8px; margin-top: 4px; background: none; border: 1px solid #C0533B; color: #A2402A; border-radius: var(--radius); padding: 3px 8px; cursor: pointer; }
+.rm-btn-warn {
+  background: #C0533B; color: #fff; border: none; font-family: 'Barlow Semi Condensed', sans-serif;
+  font-weight: 700; font-size: 13.5px; padding: 8px 14px; border-radius: var(--radius); cursor: pointer;
+}
+.rm-lightbox { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 70; padding: 20px; }
+.rm-lightbox img { max-width: 100%; max-height: 100%; border-radius: 4px; }
+.rm-carrier-empty { padding: 14px; font-size: 12px; color: var(--ink-soft); text-align: center; }
+
+.rm-board { display: flex; gap: 14px; padding: 18px 22px; overflow-x: auto; scroll-snap-type: x proximity; align-items: flex-start; }
+.rm-col {
+  background: #F8F8F6;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  min-width: 250px;
+  max-width: 270px;
+  flex: 0 0 auto;
+  scroll-snap-align: start;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 260px);
+}
+.rm-col.rm-dragover { outline: 2px dashed var(--amber); outline-offset: -2px; }
+.rm-col-head {
+  padding: 10px 12px;
+  border-bottom: 2px solid;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-family: 'Barlow Semi Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 15.5px;
+}
+.rm-col-count { font-family: 'IBM Plex Mono', monospace; font-weight: 500; font-size: 12px; color: var(--ink-soft); }
+.rm-col-body { padding: 10px; display: flex; flex-direction: column; gap: 9px; overflow-y: auto; }
+.rm-col-empty { font-size: 12px; color: var(--ink-soft); padding: 14px 4px; text-align: center; border: 1px dashed var(--line); border-radius: var(--radius); }
+
+.rm-card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--navy);
+  border-radius: var(--radius);
+  padding: 10px 11px;
+  cursor: grab;
+  position: relative;
+}
+.rm-card:active { cursor: grabbing; }
+.rm-card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+.rm-card-fecha { font-weight: 600; font-size: 13px; }
+.rm-badge { font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 20px; background: var(--amber-soft); color: #8A5A11; white-space: nowrap; }
+.rm-badge.rm-late { background: #FBEBE7; color: #A2402A; }
+.rm-card-proveedor { font-family: 'Barlow Semi Condensed', sans-serif; font-weight: 700; font-size: 15.5px; margin: 0 0 3px 0; line-height: 1.15; }
+.rm-card-meta { font-size: 11px; color: var(--ink-soft); margin: 0 0 6px 0; line-height: 1.5; }
+.rm-card-meta b { color: var(--ink); font-weight: 500; }
+.rm-chip { display: inline-block; font-size: 10.5px; padding: 2px 8px; border-radius: 20px; background: #EDF0F2; color: var(--navy); margin-bottom: 6px; margin-right: 4px; }
+.rm-track-link { display: inline-block; font-size: 10.5px; color: #2F7C77; text-decoration: none; border-bottom: 1px dotted #2F7C77; margin-bottom: 6px; }
+.rm-card-update { font-size: 10.5px; color: var(--ink-soft); border-top: 1px dashed var(--line); padding-top: 5px; margin-top: 2px; }
+.rm-card-notas { font-size: 11px; color: var(--ink-soft); border-top: 1px dashed var(--line); padding-top: 6px; margin-top: 2px; white-space: pre-wrap; }
+.rm-card-actions { display: flex; gap: 5px; margin-top: 8px; justify-content: flex-end; }
+.rm-icon-btn { border: 1px solid var(--line); background: #fff; color: var(--ink-soft); font-size: 11px; font-family: 'IBM Plex Mono', monospace; padding: 3px 7px; border-radius: var(--radius); cursor: pointer; }
+.rm-icon-btn:hover { border-color: var(--navy); color: var(--navy); }
+
+.rm-overlay { position: fixed; inset: 0; background: rgba(22, 40, 58, 0.55); display: flex; align-items: center; justify-content: center; z-index: 50; padding: 16px; }
+.rm-modal { background: #fff; width: 100%; max-width: 440px; border-radius: var(--radius); padding: 20px 22px 18px 22px; max-height: 90vh; overflow-y: auto; }
+.rm-modal h2 { font-size: 20px; margin: 0 0 14px 0; }
+.rm-modal h3 { font-size: 14px; margin: 16px 0 8px 0; padding-top: 10px; border-top: 1px solid var(--line); color: var(--navy); }
+.rm-field { margin-bottom: 11px; }
+.rm-field label { display: block; font-size: 11px; color: var(--ink-soft); margin-bottom: 3px; }
+.rm-field input, .rm-field select, .rm-field textarea {
+  width: 100%; font-family: 'IBM Plex Mono', monospace; font-size: 13px; padding: 8px 9px;
+  border: 1px solid var(--line); border-radius: var(--radius); background: #fcfcfb; color: var(--ink);
+}
+.rm-field textarea { resize: vertical; min-height: 50px; }
+.rm-row2 { display: flex; gap: 10px; }
+.rm-row2 > div { flex: 1; }
+.rm-modal-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; gap: 10px; }
+.rm-btn-primary {
+  background: var(--navy); color: #fff; border: none; font-family: 'Barlow Semi Condensed', sans-serif;
+  font-weight: 700; font-size: 15px; padding: 9px 18px; border-radius: var(--radius); cursor: pointer;
+}
+.rm-btn-danger { background: none; border: none; color: #A2402A; font-size: 12px; cursor: pointer; font-family: 'IBM Plex Mono', monospace; }
+.rm-btn-ghost { background: none; border: 1px solid var(--line); color: var(--ink-soft); font-size: 13px; padding: 8px 14px; border-radius: var(--radius); cursor: pointer; }
+.rm-status-msg { font-size: 11px; padding: 6px 22px; color: var(--ink-soft); }
+.rm-status-msg.rm-error { color: #A2402A; }
+
+.rm-scan-modal { max-width: 460px; }
+.rm-scan-input {
+  width: 100%; font-family: 'IBM Plex Mono', monospace; font-size: 17px; padding: 13px 12px;
+  border: 2px solid var(--navy); border-radius: var(--radius); background: #fcfcfb; color: var(--ink);
+  margin-bottom: 6px;
+}
+.rm-scan-form-row { display: flex; gap: 8px; align-items: stretch; }
+.rm-scan-form-row .rm-scan-input { margin-bottom: 0; flex: 1; }
+.rm-scan-accept-btn {
+  background: var(--navy); color: #fff; border: none; font-family: 'Barlow Semi Condensed', sans-serif;
+  font-weight: 700; font-size: 15px; padding: 0 18px; border-radius: var(--radius); cursor: pointer; white-space: nowrap;
+}
+.rm-scan-hint { font-size: 11px; color: var(--ink-soft); margin: 0 0 14px 0; }
+.rm-scan-error { font-size: 12px; color: #A2402A; background: #FBEBE7; padding: 8px 10px; border-radius: var(--radius); margin-bottom: 10px; }
+.rm-scan-notfound-panel { border: 1px solid var(--line); border-radius: var(--radius); padding: 12px; }
+.rm-scan-notfound-panel select { width: 100%; margin-bottom: 8px; }
+.rm-scan-notfound-actions { display: flex; flex-direction: column; gap: 8px; }
+.rm-scan-or { text-align: center; font-size: 10.5px; color: var(--ink-soft); margin: 2px 0; }
+.rm-scan-panel { border: 1px solid var(--line); border-radius: var(--radius); padding: 12px; margin-bottom: 14px; }
+.rm-scan-panel h4 { font-family: 'Barlow Semi Condensed', sans-serif; font-size: 17px; margin: 0 0 3px 0; }
+.rm-scan-panel .rm-scan-meta { font-size: 11.5px; color: var(--ink-soft); margin-bottom: 10px; }
+.rm-scan-progress-bar { background: #EDF0F2; border-radius: 20px; height: 10px; overflow: hidden; margin-bottom: 6px; }
+.rm-scan-progress-fill { height: 100%; background: #3E8A5B; }
+.rm-scan-progress-fill.rm-over { background: #C0533B; }
+.rm-scan-count { font-size: 13px; font-weight: 600; margin-bottom: 10px; }
+.rm-scan-count.rm-over-text { color: #A2402A; }
+.rm-scan-remaining { font-size: 11.5px; color: #8A5A11; background: var(--amber-soft); display: inline-block; padding: 3px 9px; border-radius: 20px; margin: -4px 0 10px 0; }
+.rm-scan-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.rm-btn-confirm {
+  background: #3E8A5B; color: #fff; border: none; font-family: 'Barlow Semi Condensed', sans-serif;
+  font-weight: 700; font-size: 14px; padding: 8px 14px; border-radius: var(--radius); cursor: pointer;
+}
+.rm-btn-confirm:disabled { background: #A9C6B5; cursor: not-allowed; }
+.rm-scan-log { list-style: none; margin: 10px 0 0 0; padding: 0; max-height: 100px; overflow-y: auto; font-size: 10.5px; color: var(--ink-soft); }
+.rm-scan-log li { padding: 3px 0; border-bottom: 1px dashed var(--line); }
+.rm-historial { list-style: none; margin: 0 0 10px 0; padding: 0; max-height: 130px; overflow-y: auto; border: 1px solid var(--line); border-radius: var(--radius); }
+.rm-historial li { padding: 6px 9px; font-size: 11px; border-bottom: 1px solid var(--line); }
+.rm-historial li:last-child { border-bottom: none; }
+.rm-historial .rm-h-time { color: var(--ink-soft); display: block; font-size: 10px; }
+.rm-add-update { display: flex; gap: 6px; margin-bottom: 4px; }
+.rm-add-update input { flex: 1; }
+.rm-add-update button { background: var(--navy); color: #fff; border: none; border-radius: var(--radius); font-size: 12px; padding: 0 12px; cursor: pointer; }
+.rm-notif-hint { font-size: 10.5px; color: var(--ink-soft); margin: -6px 0 10px 0; }
+</style>
+
+<div id="rm-root">
+  <div class="rm-header">
+    <div>
+      <h1>RECEPCIÓN DE MERCANCÍA</h1>
+      <p>Tablero compartido del equipo para organizar las llegadas por día y estado. Compras añade el seguimiento y aquí queda registrado para todos.</p>
+    </div>
+    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+      <button class="rm-add-btn" id="rm-open-scan" style="background:#fff; color:var(--navy);">📦 Escanear recepción</button>
+      <button class="rm-add-btn" id="rm-open-add">+ Nueva llegada</button>
+    </div>
+  </div>
+
+  <div class="rm-tabs">
+    <button class="rm-tab rm-tab-active" id="rm-tab-kanban">Tablero</button>
+    <button class="rm-tab" id="rm-tab-carrier">Por transportista</button>
+  </div>
+
+  <div class="rm-toolbar">
+    <input type="text" id="rm-search" placeholder="Buscar proveedor, pedido, transportista..." />
+    <select id="rm-filter-resp"><option value="">Todos los responsables</option></select>
+    <button class="rm-notif-btn" id="rm-notif-toggle">🔔 Activar avisos en este dispositivo</button>
+    <div class="rm-summary" id="rm-summary"></div>
+  </div>
+
+  <div class="rm-avisos" id="rm-avisos"></div>
+
+  <div id="rm-status-msg" class="rm-status-msg">Cargando tablero...</div>
+
+  <div class="rm-board" id="rm-board"></div>
+  <div class="rm-carrier-view" id="rm-carrier-view" style="display:none;"></div>
+</div>
+
+<script>
+(function(){
+  const ESTADOS = [
+    { key: 'programado', label: 'Programado', color: '#5C6B7A' },
+    { key: 'transito',   label: 'En tránsito', color: '#2F7C77' },
+    { key: 'hoy',        label: 'Llegando hoy', color: '#D98A25' },
+    { key: 'recibido',   label: 'Recibido', color: '#3E8A5B' },
+    { key: 'incidencia', label: 'Incidencia', color: '#C0533B' }
+  ];
+  const STORAGE_KEY = 'recepcion-mercancia-board';
+  const POLL_MS = 30000;
+
+  let arrivals = [];
+  let lastSnapshot = null;
+  let editingId = null;
+  let searchTerm = '';
+  let respFilter = '';
+  let quickFilter = null; // 'atrasados' | 'hoy' | 'actualizados'
+  let notifEnabled = false;
+  let viewMode = 'kanban'; // 'kanban' | 'carrier'
+
+  const root = document.getElementById('rm-root');
+  const boardEl = document.getElementById('rm-board');
+  const carrierViewEl = document.getElementById('rm-carrier-view');
+  const tabKanban = document.getElementById('rm-tab-kanban');
+  const tabCarrier = document.getElementById('rm-tab-carrier');
+  const statusMsg = document.getElementById('rm-status-msg');
+  const summaryEl = document.getElementById('rm-summary');
+  const avisosEl = document.getElementById('rm-avisos');
+  const respSelect = document.getElementById('rm-filter-resp');
+  const searchInput = document.getElementById('rm-search');
+  const notifBtn = document.getElementById('rm-notif-toggle');
+
+  function uid(){ return 'a_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,7); }
+  function todayStr(){ return new Date().toISOString().slice(0,10); }
+  function nowIso(){ return new Date().toISOString(); }
+
+  function escapeHtml(str){
+    return String(str || '').replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
+  }
+  function escapeAttr(str){ return escapeHtml(str); }
+
+  function puntualidad(fechaPrevista, fechaRecepcion){
+    if (!fechaPrevista || !fechaRecepcion) return null;
+    const diff = Math.round((new Date(fechaRecepcion) - new Date(fechaPrevista)) / 86400000);
+    if (diff === 0) return { text: 'a tiempo', late: false };
+    if (diff > 0) return { text: diff + 'd de retraso', late: true };
+    return { text: Math.abs(diff) + 'd antes de lo previsto', late: false };
+  }
+
+  function dateBadge(fecha, estado){
+    if (!fecha) return null;
+    if (estado === 'recibido') return null;
+    const today = new Date(todayStr());
+    const target = new Date(fecha);
+    const diffDays = Math.round((target - today) / 86400000);
+    if (diffDays < 0) return { text: 'ATRASADO ' + Math.abs(diffDays) + 'D', late: true };
+    if (diffDays === 0) return { text: 'HOY', late: false };
+    if (diffDays === 1) return { text: 'MAÑANA', late: false };
+    return { text: 'EN ' + diffDays + 'D', late: false };
+  }
+
+  function formatFecha(fecha){
+    if (!fecha) return '(sin fecha)';
+    const [y,m,d] = fecha.split('-');
+    return d + '/' + m + '/' + y;
+  }
+
+  function timeAgo(iso){
+    if (!iso) return '';
+    const diffMs = Date.now() - new Date(iso).getTime();
+    const mins = Math.round(diffMs / 60000);
+    if (mins < 1) return 'ahora mismo';
+    if (mins < 60) return 'hace ' + mins + ' min';
+    const hrs = Math.round(mins / 60);
+    if (hrs < 24) return 'hace ' + hrs + 'h';
+    const days = Math.round(hrs / 24);
+    return 'hace ' + days + 'd';
+  }
+
+  function formatDateTime(iso){
+    if (!iso) return '';
+    const d = new Date(iso);
+    const dd = String(d.getDate()).padStart(2, '0');
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const hh = String(d.getHours()).padStart(2, '0');
+    const mi = String(d.getMinutes()).padStart(2, '0');
+    return dd + '/' + mm + '/' + d.getFullYear() + ' ' + hh + ':' + mi;
+  }
+
+  function lastHistorial(a){
+    if (!a.historial || !a.historial.length) return null;
+    return a.historial[a.historial.length - 1];
+  }
+
+  function addHistorial(a, tipo, texto){
+    if (!a.historial) a.historial = [];
+    a.historial.push({ ts: nowIso(), tipo, texto });
+  }
+
+  async function loadBoard(){
+    try {
+      const res = await window.storage.get(STORAGE_KEY, true);
+      arrivals = (res && res.value) ? JSON.parse(res.value) : [];
+    } catch (e) {
+      arrivals = [];
+    }
+    arrivals.forEach(a => { if (!a.historial) a.historial = []; });
+    lastSnapshot = JSON.parse(JSON.stringify(arrivals));
+    statusMsg.textContent = '';
+    render();
+    startPolling();
+  }
+
+  async function persist(){
+    try {
+      const result = await window.storage.set(STORAGE_KEY, JSON.stringify(arrivals), true);
+      if (!result) {
+        statusMsg.textContent = 'No se pudo guardar el cambio. Se reintentará en el próximo cambio.';
+        statusMsg.classList.add('rm-error');
+      } else {
+        statusMsg.textContent = '';
+        statusMsg.classList.remove('rm-error');
+        lastSnapshot = JSON.parse(JSON.stringify(arrivals));
+      }
+    } catch (e) {
+      statusMsg.textContent = 'Error de guardado: los cambios podrían no verse en otros dispositivos.';
+      statusMsg.classList.add('rm-error');
+    }
+  }
+
+  function startPolling(){
+    setInterval(async () => {
+      try {
+        const res = await window.storage.get(STORAGE_KEY, true);
+        const fresh = (res && res.value) ? JSON.parse(res.value) : [];
+        fresh.forEach(a => { if (!a.historial) a.historial = []; });
+        diffAndNotify(lastSnapshot || [], fresh);
+        arrivals = fresh;
+        lastSnapshot = JSON.parse(JSON.stringify(arrivals));
+        render();
+      } catch (e) { /* silent: keep last known state */ }
+    }, POLL_MS);
+  }
+
+  function diffAndNotify(oldList, newList){
+    if (!notifEnabled || typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
+    const oldById = Object.fromEntries(oldList.map(a => [a.id, a]));
+    newList.forEach(a => {
+      const prev = oldById[a.id];
+      if (!prev) return; // no aviso por altas nuevas, solo por cambios de seguimiento/estado
+      if (prev.estado !== a.estado && (a.estado === 'recibido' || a.estado === 'incidencia' || a.estado === 'hoy')) {
+        const label = ESTADOS.find(e => e.key === a.estado).label;
+        new Notification('Recepción de mercancía', { body: (a.proveedor || 'Envío') + ' → ' + label });
+      }
+      const prevHist = prev.historial ? prev.historial.length : 0;
+      const newHist = a.historial ? a.historial.length : 0;
+      if (newHist > prevHist) {
+        const last = a.historial[a.historial.length - 1];
+        if (last.tipo === 'nota') {
+          new Notification('Actualización de seguimiento', { body: (a.proveedor || 'Envío') + ': ' + last.texto });
+        }
+      }
+    });
+  }
+
+  notifBtn.addEventListener('click', () => {
+    if (typeof Notification === 'undefined') {
+      alert('Este navegador no admite avisos del sistema.');
+      return;
+    }
+    Notification.requestPermission().then(perm => {
+      notifEnabled = perm === 'granted';
+      notifBtn.classList.toggle('rm-on', notifEnabled);
+      notifBtn.textContent = notifEnabled ? '🔔 Avisos activados' : '🔔 Activar avisos en este dispositivo';
+      if (notifEnabled) {
+        statusMsg.textContent = 'Avisos activos mientras esta pestaña esté abierta en este dispositivo.';
+        statusMsg.classList.remove('rm-error');
+      }
+    });
+  });
+
+  function updateRespFilterOptions(){
+    const current = respSelect.value;
+    const names = Array.from(new Set(arrivals.map(a => a.responsable).filter(Boolean))).sort();
+    respSelect.innerHTML = '<option value="">Todos los responsables</option>' +
+      names.map(n => '<option value="' + escapeAttr(n) + '">' + escapeHtml(n) + '</option>').join('');
+    if (names.includes(current)) respSelect.value = current;
+  }
+
+  function matchesFilters(a){
+    if (respFilter && a.responsable !== respFilter) return false;
+    if (searchTerm) {
+      const hay = (a.proveedor + ' ' + a.transportista + ' ' + a.pedido + ' ' + a.notas + ' ' + (a.trackingNumero||'')).toLowerCase();
+      if (!hay.includes(searchTerm.toLowerCase())) return false;
+    }
+    if (quickFilter === 'atrasados') {
+      const b = dateBadge(a.fecha, a.estado);
+      if (!b || !b.late) return false;
+    }
+    if (quickFilter === 'hoy') {
+      if (a.fecha !== todayStr() || a.estado === 'recibido') return false;
+    }
+    if (quickFilter === 'actualizados') {
+      const h = lastHistorial(a);
+      if (!h || (Date.now() - new Date(h.ts).getTime()) > 86400000) return false;
+    }
+    return true;
+  }
+
+  function renderAvisos(){
+    const atrasados = arrivals.filter(a => { const b = dateBadge(a.fecha, a.estado); return b && b.late; }).length;
+    const hoy = arrivals.filter(a => a.fecha === todayStr() && a.estado !== 'recibido').length;
+    const actualizados = arrivals.filter(a => { const h = lastHistorial(a); return h && (Date.now() - new Date(h.ts).getTime()) <= 86400000; }).length;
+
+    avisosEl.innerHTML = `
+      <div class="rm-aviso rm-warn ${quickFilter==='atrasados' ? 'rm-active' : ''}" data-qf="atrasados"><b>${atrasados}</b>Atrasadas</div>
+      <div class="rm-aviso rm-today ${quickFilter==='hoy' ? 'rm-active' : ''}" data-qf="hoy"><b>${hoy}</b>Llegan hoy</div>
+      <div class="rm-aviso rm-update ${quickFilter==='actualizados' ? 'rm-active' : ''}" data-qf="actualizados"><b>${actualizados}</b>Con novedades (24h)</div>
+      ${quickFilter ? '<span class="rm-clear-filter" id="rm-clear-qf">Quitar filtro</span>' : ''}
+    `;
+    avisosEl.querySelectorAll('[data-qf]').forEach(el => {
+      el.addEventListener('click', () => {
+        const qf = el.dataset.qf;
+        quickFilter = quickFilter === qf ? null : qf;
+        render();
+      });
+    });
+    const clear = document.getElementById('rm-clear-qf');
+    if (clear) clear.addEventListener('click', () => { quickFilter = null; render(); });
+  }
+
+  function render(){
+    updateRespFilterOptions();
+    renderAvisos();
+
+    summaryEl.innerHTML = ESTADOS.map(es => {
+      const n = arrivals.filter(a => a.estado === es.key).length;
+      return '<span>' + es.label + ': ' + n + '</span>';
+    }).join('');
+
+    if (viewMode === 'kanban') {
+      boardEl.style.display = 'flex';
+      carrierViewEl.style.display = 'none';
+      renderKanban();
+    } else {
+      boardEl.style.display = 'none';
+      carrierViewEl.style.display = 'block';
+      renderCarrierView();
+    }
+  }
+
+  function renderKanban(){
+    boardEl.innerHTML = '';
+    ESTADOS.forEach(es => {
+      const col = document.createElement('div');
+      col.className = 'rm-col';
+      col.dataset.estado = es.key;
+
+      const head = document.createElement('div');
+      head.className = 'rm-col-head';
+      head.style.borderBottomColor = es.color;
+      head.style.color = es.color;
+      const items = arrivals.filter(a => a.estado === es.key && matchesFilters(a))
+        .sort((a,b) => (a.fecha || '9999').localeCompare(b.fecha || '9999'));
+      head.innerHTML = '<span>' + es.label + '</span><span class="rm-col-count">' + items.length + '</span>';
+      col.appendChild(head);
+
+      const body = document.createElement('div');
+      body.className = 'rm-col-body';
+
+      if (items.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'rm-col-empty';
+        empty.textContent = 'Sin llegadas aquí';
+        body.appendChild(empty);
+      }
+
+      items.forEach(a => body.appendChild(renderCard(a, es)));
+      col.appendChild(body);
+
+      col.addEventListener('dragover', e => { e.preventDefault(); col.classList.add('rm-dragover'); });
+      col.addEventListener('dragleave', () => col.classList.remove('rm-dragover'));
+      col.addEventListener('drop', e => {
+        e.preventDefault();
+        col.classList.remove('rm-dragover');
+        const id = e.dataTransfer.getData('text/plain');
+        moveTo(id, es.key);
+      });
+
+      boardEl.appendChild(col);
+    });
+  }
+
+  function renderCarrierView(){
+    const visible = arrivals.filter(matchesFilters);
+    const groups = {};
+    visible.forEach(a => {
+      const key = (a.transportista || '').trim() || '__sin__';
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(a);
+    });
+
+    const names = Object.keys(groups).filter(k => k !== '__sin__').sort((a,b) => a.localeCompare(b));
+    if (groups['__sin__']) names.push('__sin__');
+
+    if (names.length === 0) {
+      carrierViewEl.innerHTML = '<div class="rm-carrier-empty">No hay envíos que coincidan con los filtros actuales.</div>';
+      return;
+    }
+
+    carrierViewEl.innerHTML = names.map(name => {
+      const items = groups[name].slice().sort((a,b) => (a.fecha || '9999').localeCompare(b.fecha || '9999'));
+      const pendientes = items.filter(a => a.estado !== 'recibido' && a.estado !== 'incidencia').length;
+      const incidencias = items.filter(a => a.estado === 'incidencia').length;
+      const recibidos = items.filter(a => a.estado === 'recibido').length;
+      const conPuntualidad = items.filter(a => a.estado === 'recibido' && a.fechaRecepcion && a.fecha).map(a => puntualidad(a.fecha, a.fechaRecepcion));
+      const aTiempo = conPuntualidad.filter(p => !p.late).length;
+      const conRetraso = conPuntualidad.filter(p => p.late).length;
+      const label = name === '__sin__' ? 'Sin transportista asignado' : name;
+
+      const rows = items.map(a => {
+        const es = ESTADOS.find(e => e.key === a.estado);
+        const badge = dateBadge(a.fecha, a.estado);
+        const pt = a.fechaRecepcion ? puntualidad(a.fecha, a.fechaRecepcion) : null;
+        return `
+          <div class="rm-carrier-row" data-id="${a.id}">
+            <span class="rm-cr-fecha">${formatFecha(a.fecha)}</span>
+            <span class="rm-cr-proveedor">${escapeHtml(a.proveedor || '(sin proveedor)')}</span>
+            <span class="rm-cr-estado" style="background:${es.color}">${es.label}</span>
+            <span class="rm-cr-meta">
+              ${a.pedido ? 'Pedido ' + escapeHtml(a.pedido) + ' · ' : ''}
+              ${a.trackingNumero ? 'Seg: ' + escapeHtml(a.trackingNumero) + ' · ' : ''}
+              ${a.bultosEsperados ? (a.bultosEscaneados||0) + '/' + a.bultosEsperados + ' bultos' + ((a.bultosEsperados - (a.bultosEscaneados||0)) > 0 ? ' (faltan ' + (a.bultosEsperados - (a.bultosEscaneados||0)) + ')' : '') + ' · ' : ''}
+              ${a.responsable ? escapeHtml(a.responsable) : ''}
+              ${badge ? ' · ' + badge.text : ''}
+              ${a.fechaRecepcion ? ' · recibido ' + formatFecha(a.fechaRecepcion) : ''}
+              ${pt ? ' · <span style="color:' + (pt.late ? '#A2402A' : '#2A6B41') + '">' + pt.text + '</span>' : ''}
+            </span>
+          </div>
+        `;
+      }).join('');
+
+      return `
+        <div class="rm-carrier-group">
+          <div class="rm-carrier-head">
+            <h3>${escapeHtml(label)}</h3>
+            <div class="rm-carrier-pills">
+              <span>${items.length} envíos</span>
+              <span>${pendientes} pendientes</span>
+              ${incidencias ? '<span class="rm-p-warn">' + incidencias + ' incidencias</span>' : ''}
+              <span class="rm-p-ok">${recibidos} recibidos</span>
+              ${conPuntualidad.length ? '<span class="rm-p-ok">' + aTiempo + ' a tiempo</span>' : ''}
+              ${conRetraso ? '<span class="rm-p-warn">' + conRetraso + ' con retraso</span>' : ''}
+            </div>
+          </div>
+          <div class="rm-carrier-rows">${rows}</div>
+        </div>
+      `;
+    }).join('');
+
+    carrierViewEl.querySelectorAll('.rm-carrier-row').forEach(row => {
+      row.addEventListener('click', () => openModal(row.dataset.id));
+    });
+  }
+
+  function renderCard(a, es){
+    const card = document.createElement('div');
+    card.className = 'rm-card';
+    card.style.borderLeftColor = es.color;
+    card.draggable = true;
+    card.dataset.id = a.id;
+
+    const badge = dateBadge(a.fecha, a.estado);
+    const idx = ESTADOS.findIndex(x => x.key === a.estado);
+    const lastH = lastHistorial(a);
+    const pt = a.fechaRecepcion ? puntualidad(a.fecha, a.fechaRecepcion) : null;
+
+    card.innerHTML = `
+      <div class="rm-card-top">
+        <span class="rm-card-fecha">${formatFecha(a.fecha)}</span>
+        ${badge ? '<span class="rm-badge' + (badge.late ? ' rm-late' : '') + '">' + badge.text + '</span>' : ''}
+      </div>
+      <p class="rm-card-proveedor">${escapeHtml(a.proveedor || '(sin proveedor)')}</p>
+      <p class="rm-card-meta">
+        ${a.transportista ? '<b>Transportista:</b> ' + escapeHtml(a.transportista) + '<br/>' : ''}
+        ${a.pedido ? '<b>Pedido:</b> ' + escapeHtml(a.pedido) + '<br/>' : ''}
+        ${a.cantidad ? '<b>Cantidad:</b> ' + escapeHtml(a.cantidad) : ''}
+      </p>
+      ${a.responsable ? '<span class="rm-chip">' + escapeHtml(a.responsable) + '</span>' : ''}
+      ${a.trackingNumero ? '<span class="rm-chip">Seg: ' + escapeHtml(a.trackingNumero) + '</span>' : ''}
+      ${a.bultosEsperados ? '<span class="rm-chip" style="' + ((a.bultosEscaneados||0) >= a.bultosEsperados ? 'background:#EAF5EE;color:#2A6B41;' : '') + '">Bultos: ' + (a.bultosEscaneados||0) + '/' + a.bultosEsperados + '</span>' : ''}
+      ${a.bultosEsperados && (a.bultosEsperados - (a.bultosEscaneados||0)) > 0 ? '<span class="rm-chip" style="background:var(--amber-soft);color:#8A5A11;">Faltan ' + (a.bultosEsperados - (a.bultosEscaneados||0)) + '</span>' : ''}
+      ${a.incidencias && a.incidencias.length ? '<span class="rm-chip" style="background:#FBEBE7;color:#A2402A;">⚠️ ' + a.incidencias.length + ' incidencia' + (a.incidencias.length>1?'s':'') + '</span>' : ''}
+      ${a.trackingUrl ? '<br/><a class="rm-track-link" href="' + escapeAttr(a.trackingUrl) + '" target="_blank" rel="noopener">Ver seguimiento ↗</a>' : ''}
+      ${a.fechaRecepcion ? '<p class="rm-card-meta"><b>Recibido:</b> ' + formatFecha(a.fechaRecepcion) + (pt ? ' <span style="color:' + (pt.late ? '#A2402A' : '#2A6B41') + '">(' + pt.text + ')</span>' : '') + '</p>' : ''}
+      ${lastH ? '<div class="rm-card-update">Última novedad ' + formatDateTime(lastH.ts) + ' (' + timeAgo(lastH.ts) + '): ' + escapeHtml(lastH.texto) + '</div>' : ''}
+      ${a.notas ? '<div class="rm-card-notas">' + escapeHtml(a.notas) + '</div>' : ''}
+      <div class="rm-card-actions">
+        <button class="rm-icon-btn" data-act="left" ${idx === 0 ? 'disabled' : ''}>&#8592;</button>
+        <button class="rm-icon-btn" data-act="right" ${idx === ESTADOS.length-1 ? 'disabled' : ''}>&#8594;</button>
+        <button class="rm-icon-btn" data-act="edit">Editar</button>
+      </div>
+    `;
+
+    card.addEventListener('dragstart', e => { e.dataTransfer.setData('text/plain', a.id); });
+    card.querySelector('[data-act="edit"]').addEventListener('click', () => openModal(a.id));
+    const leftBtn = card.querySelector('[data-act="left"]');
+    const rightBtn = card.querySelector('[data-act="right"]');
+    if (leftBtn) leftBtn.addEventListener('click', () => shiftEstado(a.id, -1));
+    if (rightBtn) rightBtn.addEventListener('click', () => shiftEstado(a.id, 1));
+
+    return card;
+  }
+
+  function shiftEstado(id, dir){
+    const a = arrivals.find(x => x.id === id);
+    if (!a) return;
+    const idx = ESTADOS.findIndex(x => x.key === a.estado);
+    const newIdx = idx + dir;
+    if (newIdx < 0 || newIdx >= ESTADOS.length) return;
+    a.estado = ESTADOS[newIdx].key;
+    if (a.estado === 'recibido' && !a.fechaRecepcion) a.fechaRecepcion = todayStr();
+    addHistorial(a, 'estado', 'Estado cambiado a "' + ESTADOS[newIdx].label + '"');
+    render();
+    persist();
+  }
+
+  function moveTo(id, estado){
+    const a = arrivals.find(x => x.id === id);
+    if (!a || a.estado === estado) return;
+    a.estado = estado;
+    if (a.estado === 'recibido' && !a.fechaRecepcion) a.fechaRecepcion = todayStr();
+    addHistorial(a, 'estado', 'Estado cambiado a "' + ESTADOS.find(e=>e.key===estado).label + '"');
+    render();
+    persist();
+  }
+
+  // ---- Modal ----
+  function openModal(id, prefill){
+    editingId = id || null;
+    const a = id ? arrivals.find(x => x.id === id) : null;
+    const pf = prefill || {};
+
+    const overlay = document.createElement('div');
+    overlay.className = 'rm-overlay';
+    overlay.id = 'rm-overlay';
+
+    const estadoOptions = ESTADOS.map(es =>
+      '<option value="' + es.key + '"' + (a && a.estado === es.key ? ' selected' : (!a && es.key === 'programado' ? ' selected' : '')) + '>' + es.label + '</option>'
+    ).join('');
+
+    const historialHtml = (a && a.historial && a.historial.length)
+      ? '<ul class="rm-historial">' + a.historial.slice().reverse().map(h =>
+          '<li><span class="rm-h-time">' + formatDateTime(h.ts) + ' (' + timeAgo(h.ts) + ')</span>' + escapeHtml(h.texto) + '</li>'
+        ).join('') + '</ul>'
+      : '<p class="rm-notif-hint">Sin actualizaciones registradas todavía.</p>';
+
+    const incidenciasHtml = (a && a.incidencias && a.incidencias.length)
+      ? a.incidencias.slice().reverse().map(inc => `
+          <div class="rm-incidencia-item" data-inc-id="${inc.id}">
+            <span class="rm-h-time">${formatDateTime(inc.ts)}</span>
+            ${escapeHtml(inc.descripcion)}
+            ${inc.firmante ? '<br/>Firmado por: ' + escapeHtml(inc.firmante) : ''}
+            <div>
+              ${(inc.fotoKeys || []).map((k,i) => '<button type="button" class="rm-view-foto" data-key="' + escapeAttr(k) + '">Ver foto ' + (i+1) + '</button>').join('')}
+              ${inc.firmaKey ? '<button type="button" class="rm-view-foto" data-key="' + escapeAttr(inc.firmaKey) + '">Ver firma</button>' : ''}
+            </div>
+          </div>
+        `).join('')
+      : '';
+
+    overlay.innerHTML = `
+      <div class="rm-modal">
+        <h2>${a ? 'Editar llegada' : 'Nueva llegada'}</h2>
+        <div id="rm-form">
+          <div class="rm-row2">
+            <div class="rm-field">
+              <label>Proveedor</label>
+              <input type="text" name="proveedor" required value="${a ? escapeAttr(a.proveedor) : ''}" />
+            </div>
+            <div class="rm-field">
+              <label>Fecha prevista (transportista)</label>
+              <input type="date" name="fecha" required value="${a ? a.fecha || '' : todayStr()}" />
+            </div>
+          </div>
+          <div class="rm-row2">
+            <div class="rm-field">
+              <label>Transportista</label>
+              <input type="text" name="transportista" value="${a ? escapeAttr(a.transportista || '') : ''}" />
+            </div>
+            <div class="rm-field">
+              <label>Nº de pedido</label>
+              <input type="text" name="pedido" value="${a ? escapeAttr(a.pedido || '') : ''}" />
+            </div>
+          </div>
+          <div class="rm-row2">
+            <div class="rm-field">
+              <label>Cantidad</label>
+              <input type="text" name="cantidad" placeholder="ej. 48 palés" value="${a ? escapeAttr(a.cantidad || '') : ''}" />
+            </div>
+            <div class="rm-field">
+              <label>Responsable</label>
+              <input type="text" name="responsable" value="${a ? escapeAttr(a.responsable || '') : ''}" />
+            </div>
+          </div>
+
+          <h3>Seguimiento (rellena Compras)</h3>
+          <div class="rm-row2">
+            <div class="rm-field">
+              <label>Nº de seguimiento</label>
+              <input type="text" name="trackingNumero" value="${a ? escapeAttr(a.trackingNumero || '') : escapeAttr(pf.trackingNumero || '')}" />
+            </div>
+            <div class="rm-field">
+              <label>Nº de bultos esperados</label>
+              <input type="number" min="0" name="bultosEsperados" value="${a && a.bultosEsperados != null ? a.bultosEsperados : ''}" />
+            </div>
+          </div>
+          <div class="rm-field">
+            <label>Enlace de seguimiento (opcional)</label>
+            <input type="url" name="trackingUrl" placeholder="https://..." value="${a ? escapeAttr(a.trackingUrl || '') : ''}" />
+          </div>
+          ${a && a.bultosEsperados ? '<p class="rm-notif-hint">Recepción: ' + (a.bultosEscaneados || 0) + ' / ' + a.bultosEsperados + ' bultos escaneados. Usa "📦 Escanear recepción" en la cabecera para registrar bultos.</p>' : ''}
+
+          <div class="rm-row2">
+            <div class="rm-field">
+              <label>Estado</label>
+              <select name="estado">${estadoOptions}</select>
+            </div>
+            <div class="rm-field">
+              <label>Fecha de recepción real</label>
+              <input type="date" name="fechaRecepcion" value="${a && a.fechaRecepcion ? a.fechaRecepcion : ''}" />
+            </div>
+          </div>
+          ${(function(){
+              if (!a || !a.fecha || !a.fechaRecepcion) return '';
+              const p = puntualidad(a.fecha, a.fechaRecepcion);
+              if (!p) return '';
+              return '<p class="rm-notif-hint" style="' + (p.late ? 'color:#A2402A;' : 'color:#2A6B41;') + '">Comparado con la fecha prevista del transportista: <b>' + p.text + '</b>.</p>';
+            })()}
+          <div class="rm-field">
+            <label>Notas</label>
+            <textarea name="notas">${a ? escapeHtml(a.notas || '') : ''}</textarea>
+          </div>
+
+          ${a ? `
+          <h3>Incidencias</h3>
+          ${incidenciasHtml || '<p class="rm-notif-hint">Sin incidencias registradas.</p>'}
+          <button type="button" class="rm-btn-warn" id="rm-open-incidencia" style="margin-bottom:10px;">⚠️ Registrar incidencia</button>
+
+          <h3>Historial de novedades</h3>
+          ${historialHtml}
+          <div class="rm-add-update">
+            <input type="text" id="rm-update-text" placeholder="ej. Salió de aduana, en reparto..." />
+            <button type="button" id="rm-add-update-btn">Añadir</button>
+          </div>
+          <p class="rm-notif-hint">Cada actualización queda registrada con fecha y hora, y avisa a quien tenga los avisos activados.</p>
+          ` : ''}
+
+          <div class="rm-modal-actions">
+            <div>${a ? '<button type="button" class="rm-btn-danger" id="rm-delete">Eliminar</button>' : ''}</div>
+            <div style="display:flex; gap:8px;">
+              <button type="button" class="rm-btn-ghost" id="rm-cancel">Cancelar</button>
+              <button type="button" class="rm-btn-primary" id="rm-form-submit">${a ? 'Guardar cambios' : 'Añadir llegada'}</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    root.appendChild(overlay);
+
+    overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
+    document.getElementById('rm-cancel').addEventListener('click', closeModal);
+    const delBtn = document.getElementById('rm-delete');
+    if (delBtn) delBtn.addEventListener('click', () => {
+      if (confirm('¿Eliminar esta llegada del tablero?')) {
+        arrivals = arrivals.filter(x => x.id !== editingId);
+        closeModal();
+        render();
+        persist();
+      }
+    });
+
+    overlay.querySelectorAll('.rm-view-foto').forEach(btn => {
+      btn.addEventListener('click', () => viewIncidenciaMedia(btn.dataset.key));
+    });
+    const openIncBtn = document.getElementById('rm-open-incidencia');
+    if (openIncBtn) openIncBtn.addEventListener('click', () => {
+      openIncidenciaModal(editingId, () => { closeModal(); openModal(editingId); });
+    });
+
+    const addUpdateBtn = document.getElementById('rm-add-update-btn');
+    if (addUpdateBtn) addUpdateBtn.addEventListener('click', () => {
+      const input = document.getElementById('rm-update-text');
+      const texto = input.value.trim();
+      if (!texto) return;
+      const item = arrivals.find(x => x.id === editingId);
+      if (!item) return;
+      addHistorial(item, 'nota', texto);
+      persist();
+      closeModal();
+      openModal(editingId);
+      render();
+    });
+
+    function fval(name){
+      const el = document.getElementById('rm-form').querySelector('[name="' + name + '"]');
+      return el ? el.value : '';
+    }
+
+    document.getElementById('rm-form-submit').addEventListener('click', () => {
+      const data = {
+        proveedor: fval('proveedor').trim(),
+        fecha: fval('fecha'),
+        transportista: fval('transportista').trim(),
+        pedido: fval('pedido').trim(),
+        cantidad: fval('cantidad').trim(),
+        responsable: fval('responsable').trim(),
+        trackingNumero: fval('trackingNumero').trim(),
+        trackingUrl: fval('trackingUrl').trim(),
+        bultosEsperados: fval('bultosEsperados') ? parseInt(fval('bultosEsperados'), 10) : null,
+        estado: fval('estado'),
+        fechaRecepcion: fval('fechaRecepcion') || null,
+        notas: fval('notas').trim()
+      };
+      if (!data.proveedor) { alert('Indica el proveedor.'); return; }
+      if (!data.fecha) { alert('Indica la fecha prevista.'); return; }
+      if (data.estado === 'recibido' && !data.fechaRecepcion) data.fechaRecepcion = todayStr();
+      if (editingId) {
+        const existing = arrivals.find(x => x.id === editingId);
+        const prevEstado = existing.estado;
+        const prevTracking = existing.trackingNumero;
+        Object.assign(existing, data);
+        if (prevEstado !== data.estado) {
+          addHistorial(existing, 'estado', 'Estado cambiado a "' + ESTADOS.find(e=>e.key===data.estado).label + '"');
+        }
+        if (!prevTracking && data.trackingNumero) {
+          addHistorial(existing, 'nota', 'Seguimiento añadido: ' + data.trackingNumero);
+        }
+      } else {
+        const fresh = Object.assign({ id: uid(), historial: [] }, data);
+        addHistorial(fresh, 'estado', 'Llegada creada en "' + ESTADOS.find(e=>e.key===data.estado).label + '"');
+        arrivals.push(fresh);
+      }
+      closeModal();
+      render();
+      persist();
+    });
+  }
+
+  function closeModal(){
+    const overlay = document.getElementById('rm-overlay');
+    if (overlay) overlay.remove();
+    editingId = null;
+  }
+
+  // ---- Escaneo de recepción ----
+  // ---- Incidencias: fotos y firma ----
+  function fileToCompressedDataUrl(file){
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const img = new Image();
+        img.onload = () => {
+          const maxDim = 1000;
+          let w = img.width, h = img.height;
+          if (w > maxDim || h > maxDim) {
+            if (w > h) { h = Math.round(h * maxDim / w); w = maxDim; }
+            else { w = Math.round(w * maxDim / h); h = maxDim; }
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = w; canvas.height = h;
+          canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+          resolve(canvas.toDataURL('image/jpeg', 0.6));
+        };
+        img.onerror = reject;
+        img.src = reader.result;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function setupSignaturePad(canvas){
+    const ctx = canvas.getContext('2d');
+    canvas.width = canvas.clientWidth * 2;
+    canvas.height = canvas.clientHeight * 2;
+    ctx.scale(2, 2);
+    ctx.strokeStyle = '#1B2733';
+    ctx.lineWidth = 2;
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+    let drawing = false;
+    let hasDrawn = false;
+
+    function pos(e){
+      const r = canvas.getBoundingClientRect();
+      return { x: (e.clientX - r.left), y: (e.clientY - r.top) };
+    }
+    canvas.addEventListener('pointerdown', e => {
+      drawing = true;
+      const p = pos(e);
+      ctx.beginPath();
+      ctx.moveTo(p.x, p.y);
+      canvas.setPointerCapture(e.pointerId);
+    });
+    canvas.addEventListener('pointermove', e => {
+      if (!drawing) return;
+      const p = pos(e);
+      ctx.lineTo(p.x, p.y);
+      ctx.stroke();
+      hasDrawn = true;
+    });
+    ['pointerup','pointerleave','pointercancel'].forEach(ev => canvas.addEventListener(ev, () => { drawing = false; }));
+
+    return {
+      clear(){ ctx.clearRect(0, 0, canvas.width, canvas.height); hasDrawn = false; },
+      isEmpty(){ return !hasDrawn; },
+      toDataUrl(){ return canvas.toDataURL('image/png'); }
+    };
+  }
+
+  function openIncidenciaModal(arrivalId, onSaved){
+    const a = arrivals.find(x => x.id === arrivalId);
+    if (!a) return;
+
+    const overlay = document.createElement('div');
+    overlay.className = 'rm-overlay rm-overlay-top';
+    overlay.id = 'rm-incidencia-overlay';
+    overlay.innerHTML = `
+      <div class="rm-modal rm-incidencia-modal">
+        <h2>⚠️ Registrar incidencia</h2>
+        <p class="rm-notif-hint">${escapeHtml(a.proveedor || '')} ${a.trackingNumero ? '· Seg: ' + escapeHtml(a.trackingNumero) : ''}</p>
+        <div class="rm-field">
+          <label>Descripción del daño</label>
+          <textarea id="rm-inc-desc" placeholder="ej. Caja aplastada en una esquina, producto roto..."></textarea>
+        </div>
+        <div class="rm-field">
+          <label>Fotos del bulto dañado</label>
+          <input type="file" id="rm-inc-photos" accept="image/*" capture="environment" multiple />
+          <div class="rm-photo-thumbs" id="rm-inc-thumbs"></div>
+        </div>
+        <div class="rm-field">
+          <label>Firma del repartidor (confirma que lo descrito es cierto)</label>
+          <div class="rm-sig-wrap"><canvas class="rm-sig-canvas" id="rm-inc-sig"></canvas></div>
+          <div class="rm-sig-actions">
+            <span></span>
+            <button type="button" id="rm-inc-sig-clear">Borrar firma</button>
+          </div>
+          <input type="text" id="rm-inc-firmante" placeholder="Nombre del repartidor" />
+        </div>
+        <div class="rm-modal-actions">
+          <button type="button" class="rm-btn-ghost" id="rm-inc-cancel">Cancelar</button>
+          <button type="button" class="rm-btn-warn" id="rm-inc-save">Guardar incidencia</button>
+        </div>
+      </div>
+    `;
+    root.appendChild(overlay);
+
+    const sigCanvas = document.getElementById('rm-inc-sig');
+    const sigPad = setupSignaturePad(sigCanvas);
+    document.getElementById('rm-inc-sig-clear').addEventListener('click', () => sigPad.clear());
+
+    let pendingFiles = [];
+    const thumbsEl = document.getElementById('rm-inc-thumbs');
+    document.getElementById('rm-inc-photos').addEventListener('change', e => {
+      pendingFiles = Array.from(e.target.files || []);
+      thumbsEl.innerHTML = '';
+      pendingFiles.forEach(f => {
+        const url = URL.createObjectURL(f);
+        const img = document.createElement('img');
+        img.src = url;
+        thumbsEl.appendChild(img);
+      });
+    });
+
+    overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+    document.getElementById('rm-inc-cancel').addEventListener('click', () => overlay.remove());
+
+    document.getElementById('rm-inc-save').addEventListener('click', async () => {
+      const descripcion = document.getElementById('rm-inc-desc').value.trim();
+      if (!descripcion) { alert('Describe brevemente el daño antes de guardar.'); return; }
+      const firmante = document.getElementById('rm-inc-firmante').value.trim();
+      const saveBtn = document.getElementById('rm-inc-save');
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Guardando...';
+
+      const incId = uid();
+      const fotoKeys = [];
+      try {
+        for (let i = 0; i < pendingFiles.length; i++) {
+          const dataUrl = await fileToCompressedDataUrl(pendingFiles[i]);
+          const key = 'foto:' + arrivalId + ':' + incId + ':' + i;
+          await window.storage.set(key, dataUrl, true);
+          fotoKeys.push(key);
+        }
+        let firmaKey = null;
+        if (!sigPad.isEmpty()) {
+          firmaKey = 'firma:' + arrivalId + ':' + incId;
+          await window.storage.set(firmaKey, sigPad.toDataUrl(), true);
+        }
+
+        if (!a.incidencias) a.incidencias = [];
+        a.incidencias.push({ id: incId, ts: nowIso(), descripcion, fotoKeys, firmaKey, firmante });
+        a.estado = 'incidencia';
+        addHistorial(a, 'estado', 'Incidencia registrada: ' + descripcion.slice(0, 80) + (firmante ? ' — firmado por ' + firmante : ''));
+        await persist();
+        overlay.remove();
+        render();
+        if (onSaved) onSaved();
+      } catch (err) {
+        alert('No se pudo guardar la incidencia (revisa la conexión). Inténtalo de nuevo.');
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Guardar incidencia';
+      }
+    });
+  }
+
+  function openLightbox(dataUrl){
+    const lb = document.createElement('div');
+    lb.className = 'rm-lightbox';
+    lb.innerHTML = '<img src="' + dataUrl + '" />';
+    lb.addEventListener('click', () => lb.remove());
+    root.appendChild(lb);
+  }
+
+  async function viewIncidenciaMedia(key){
+    try {
+      const res = await window.storage.get(key, true);
+      if (res && res.value) openLightbox(res.value);
+    } catch (e) {
+      alert('No se pudo cargar la imagen.');
+    }
+  }
+
+  function findByTracking(code){
+    const c = code.trim().toLowerCase();
+    if (!c) return null;
+    return arrivals.find(a => (a.trackingNumero || '').trim().toLowerCase() === c) || null;
+  }
+
+  function openScanModal(){
+    const overlay = document.createElement('div');
+    overlay.className = 'rm-overlay';
+    overlay.id = 'rm-scan-overlay';
+    overlay.innerHTML = `
+      <div class="rm-modal rm-scan-modal">
+        <h2>📦 Escanear recepción</h2>
+        <div id="rm-scan-form">
+          <div class="rm-scan-form-row">
+            <input type="text" id="rm-scan-input" class="rm-scan-input" autocomplete="off"
+                   placeholder="Escanea la etiqueta o escribe el nº de seguimiento" autofocus />
+            <button type="button" class="rm-scan-accept-btn" id="rm-scan-accept">Aceptar</button>
+          </div>
+        </div>
+        <p class="rm-scan-hint">Compatible con lectores de código de barras USB/Bluetooth. Si la pistola pulsa Enter automáticamente, se procesa solo; si no, escribe o escanea el código y pulsa "Aceptar".</p>
+        <div id="rm-scan-result"></div>
+        <div class="rm-modal-actions">
+          <div></div>
+          <button type="button" class="rm-btn-ghost" id="rm-scan-close">Cerrar</button>
+        </div>
+      </div>
+    `;
+    root.appendChild(overlay);
+    overlay.addEventListener('click', e => { if (e.target === overlay) closeScanModal(); });
+    document.getElementById('rm-scan-close').addEventListener('click', closeScanModal);
+
+    const input = document.getElementById('rm-scan-input');
+    const resultEl = document.getElementById('rm-scan-result');
+    let currentId = null;
+
+    function renderResult(){
+      if (!currentId) { resultEl.innerHTML = ''; return; }
+      const a = arrivals.find(x => x.id === currentId);
+      if (!a) { resultEl.innerHTML = ''; currentId = null; return; }
+      const esperados = a.bultosEsperados;
+      const escaneados = a.bultosEscaneados || 0;
+      const over = esperados != null && escaneados > esperados;
+      const complete = esperados != null && escaneados >= esperados;
+      const pct = esperados ? Math.min(100, Math.round((escaneados / esperados) * 100)) : 0;
+
+      const scanLogs = (a.historial || []).filter(h => h.tipo === 'bulto').slice(-5).reverse();
+
+      resultEl.innerHTML = `
+        <div class="rm-scan-panel">
+          <h4>${escapeHtml(a.proveedor || '(sin proveedor)')}</h4>
+          <div class="rm-scan-meta">
+            ${a.pedido ? 'Pedido ' + escapeHtml(a.pedido) + ' · ' : ''}Seg: ${escapeHtml(a.trackingNumero)} · Fecha ${formatFecha(a.fecha)}
+          </div>
+          ${esperados != null ? `
+            <div class="rm-scan-progress-bar"><div class="rm-scan-progress-fill${over ? ' rm-over' : ''}" style="width:${pct}%"></div></div>
+            <div class="rm-scan-count${over ? ' rm-over-text' : ''}">${escaneados} / ${esperados} bultos${over ? ' — HAY MÁS BULTOS DE LOS ESPERADOS' : (complete ? ' — completo' : '')}</div>
+            ${!complete && !over ? '<div class="rm-scan-remaining">Faltan ' + (esperados - escaneados) + ' bulto' + ((esperados - escaneados) > 1 ? 's' : '') + ' por escanear</div>' : ''}
+          ` : `<div class="rm-scan-count">${escaneados} bultos escaneados (sin nº esperado definido)</div>`}
+          <div class="rm-scan-actions">
+            <button type="button" class="rm-btn-confirm" id="rm-scan-confirm" ${a.estado === 'recibido' ? 'disabled' : ''}>
+              ${a.estado === 'recibido' ? 'Ya marcado como recibido' : 'Confirmar recepción completa'}
+            </button>
+            ${escaneados > 0 ? '<button type="button" class="rm-btn-ghost" id="rm-scan-undo">Deshacer último bulto</button>' : ''}
+            <button type="button" class="rm-btn-warn" id="rm-scan-incidencia">⚠️ Bulto dañado / Incidencia</button>
+          </div>
+          ${scanLogs.length ? '<ul class="rm-scan-log">' + scanLogs.map(h => '<li>' + formatDateTime(h.ts) + ' — ' + escapeHtml(h.texto) + '</li>').join('') + '</ul>' : ''}
+        </div>
+      `;
+
+      document.getElementById('rm-scan-confirm').addEventListener('click', () => {
+        a.estado = 'recibido';
+        if (!a.fechaRecepcion) a.fechaRecepcion = todayStr();
+        addHistorial(a, 'estado', 'Recepción confirmada (' + escaneados + (esperados != null ? '/' + esperados : '') + ' bultos)');
+        persist();
+        render();
+        renderResult();
+      });
+      const undoBtn = document.getElementById('rm-scan-undo');
+      if (undoBtn) undoBtn.addEventListener('click', () => {
+        a.bultosEscaneados = Math.max(0, (a.bultosEscaneados || 0) - 1);
+        const idx = a.historial.map(h => h.tipo).lastIndexOf('bulto');
+        if (idx !== -1) a.historial.splice(idx, 1);
+        persist();
+        render();
+        renderResult();
+      });
+      document.getElementById('rm-scan-incidencia').addEventListener('click', () => {
+        openIncidenciaModal(a.id, () => renderResult());
+      });
+    }
+
+    function registerScan(a, code){
+      currentId = a.id;
+      a.bultosEscaneados = (a.bultosEscaneados || 0) + 1;
+      addHistorial(a, 'bulto', 'Bulto escaneado (' + a.bultosEscaneados + (a.bultosEsperados != null ? '/' + a.bultosEsperados : '') + ')');
+      persist();
+      render();
+      renderResult();
+      input.focus();
+    }
+
+    function renderNotFound(code){
+      const candidatos = arrivals.filter(x => x.estado !== 'recibido')
+        .sort((x,y) => (x.fecha || '9999').localeCompare(y.fecha || '9999'));
+
+      const options = candidatos.map(x =>
+        '<option value="' + x.id + '">' + escapeHtml(x.proveedor || '(sin proveedor)') + ' — ' + formatFecha(x.fecha) +
+        (x.transportista ? ' — ' + escapeHtml(x.transportista) : '') +
+        (x.trackingNumero ? ' (seg. actual: ' + escapeHtml(x.trackingNumero) + ')' : '') + '</option>'
+      ).join('');
+
+      resultEl.innerHTML = `
+        <div class="rm-scan-error">No se encontró ningún envío con el nº de seguimiento "${escapeHtml(code)}".</div>
+        <div class="rm-scan-notfound-panel">
+          <p class="rm-notif-hint" style="margin-top:0;">Puedes introducirlo manualmente asignándolo a una llegada existente:</p>
+          ${candidatos.length ? `
+            <select id="rm-nf-select">${options}</select>
+            <div class="rm-scan-notfound-actions">
+              <button type="button" class="rm-btn-confirm" id="rm-nf-assign">Asignar este nº y registrar bulto</button>
+            </div>
+            <div class="rm-scan-or">— o si el envío no existe todavía —</div>
+          ` : '<p class="rm-notif-hint">No hay llegadas pendientes a las que asignarlo todavía.</p>'}
+          <button type="button" class="rm-btn-ghost" id="rm-nf-create" style="width:100%;">+ Crear nueva llegada con este nº</button>
+        </div>
+      `;
+
+      const assignBtn = document.getElementById('rm-nf-assign');
+      if (assignBtn) assignBtn.addEventListener('click', () => {
+        const sel = document.getElementById('rm-nf-select');
+        const target = arrivals.find(x => x.id === sel.value);
+        if (!target) return;
+        const prevTracking = target.trackingNumero;
+        target.trackingNumero = code;
+        if (!prevTracking) addHistorial(target, 'nota', 'Seguimiento asignado manualmente: ' + code);
+        registerScan(target, code);
+      });
+
+      document.getElementById('rm-nf-create').addEventListener('click', () => {
+        closeScanModal();
+        openModal(null, { trackingNumero: code });
+      });
+
+      currentId = null;
+      input.focus();
+    }
+
+    function processScan(){
+      const code = input.value.trim();
+      input.value = '';
+      if (!code) { input.focus(); return; }
+      const a = findByTracking(code);
+      if (!a) {
+        renderNotFound(code);
+        return;
+      }
+      registerScan(a, code);
+    }
+
+    document.getElementById('rm-scan-accept').addEventListener('click', processScan);
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        processScan();
+      }
+    });
+
+    input.focus();
+  }
+
+  function closeScanModal(){
+    const overlay = document.getElementById('rm-scan-overlay');
+    if (overlay) overlay.remove();
+  }
+
+  tabKanban.addEventListener('click', () => {
+    viewMode = 'kanban';
+    tabKanban.classList.add('rm-tab-active');
+    tabCarrier.classList.remove('rm-tab-active');
+    render();
+  });
+  tabCarrier.addEventListener('click', () => {
+    viewMode = 'carrier';
+    tabCarrier.classList.add('rm-tab-active');
+    tabKanban.classList.remove('rm-tab-active');
+    render();
+  });
+
+  document.getElementById('rm-open-scan').addEventListener('click', openScanModal);
+  document.getElementById('rm-open-add').addEventListener('click', () => openModal(null));
+  searchInput.addEventListener('input', e => { searchTerm = e.target.value; render(); });
+  respSelect.addEventListener('change', e => { respFilter = e.target.value; render(); });
+
+  loadBoard();
+})();
+</script>
