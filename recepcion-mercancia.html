@@ -282,8 +282,9 @@
 .rm-historial li { padding: 6px 9px; font-size: 11px; border-bottom: 1px solid var(--line); }
 .rm-historial li:last-child { border-bottom: none; }
 .rm-historial .rm-h-time { color: var(--ink-soft); display: block; font-size: 10px; }
-.rm-add-update { display: flex; gap: 6px; margin-bottom: 4px; }
-.rm-add-update input { flex: 1; }
+.rm-add-update { display: flex; gap: 6px; margin-bottom: 4px; flex-wrap: wrap; }
+.rm-add-update input[type="text"] { flex: 1; min-width: 140px; }
+.rm-add-update input[type="date"] { flex: 0 0 132px; }
 .rm-add-update button { background: var(--navy); color: #fff; border: none; border-radius: var(--radius); font-size: 12px; padding: 0 12px; cursor: pointer; }
 .rm-notif-hint { font-size: 10.5px; color: var(--ink-soft); margin: -6px 0 10px 0; }
 </style>
@@ -296,6 +297,7 @@
     </div>
     <div style="display:flex; gap:8px; flex-wrap:wrap;">
       <button class="rm-add-btn" id="rm-open-scan" style="background:#fff; color:var(--navy);">📦 Escanear recepción</button>
+      <button class="rm-add-btn" id="rm-open-carriers" style="background:#fff; color:var(--navy);">🔗 Transportistas</button>
       <button class="rm-add-btn" id="rm-open-add">+ Nueva llegada</button>
     </div>
   </div>
@@ -340,6 +342,19 @@
   let quickFilter = null; // 'atrasados' | 'hoy' | 'actualizados'
   let notifEnabled = false;
   let viewMode = 'kanban'; // 'kanban' | 'carrier'
+  let carrierLinks = {}; // { 'seur': 'https://.../{tracking}', ... } normalizado en minúsculas sin acentos
+
+  const CARRIER_LINKS_KEY = 'recepcion-mercancia-carrier-links';
+  const DEFAULT_CARRIER_LINKS = {
+    'seur': 'https://www.seur.com/livetracking/',
+    'correos express': 'https://www.correosexpress.com/es/seguimiento',
+    'dhl': 'https://www.dhl.com/es-es/home/tracking.html?tracking-id={tracking}',
+    'ups': 'https://www.ups.com/track?loc=es_ES&tracknum={tracking}',
+    'redur': 'https://www.redur.es/seguimiento',
+    'ontime': 'https://www.ontime.es/seguimiento-2/',
+    'dsv': 'https://www.dsv.com/en-gb/our-solutions/track-and-trace',
+    'gls': 'https://www.gls-spain.es/es/particulares/seguimiento-de-envios/'
+  };
 
   const root = document.getElementById('rm-root');
   const boardEl = document.getElementById('rm-board');
@@ -380,6 +395,179 @@
     if (diffDays === 0) return { text: 'HOY', late: false };
     if (diffDays === 1) return { text: 'MAÑANA', late: false };
     return { text: 'EN ' + diffDays + 'D', late: false };
+  }
+
+  function fechaActual(a){
+    return (a && a.fechaEstimada) ? a.fechaEstimada : (a ? a.fecha : null);
+  }
+
+  // Intenta detectar una nueva fecha estimada a partir del texto libre de una novedad.
+  // baseFecha es la fecha (YYYY-MM-DD) sobre la que aplicar retrasos/adelantos relativos (la estimación actual, o si no hay, la prevista).
+  function parseEstimacion(texto, baseFecha){
+    if (!texto) return null;
+    const t = texto.toLowerCase();
+    const base = baseFecha ? new Date(baseFecha) : new Date(todayStr());
+
+    const mFecha = t.match(/(\d{1,2})[\/\-](\d{1,2})(?:[\/\-](\d{2,4}))?/);
+    if (mFecha) {
+      const d = parseInt(mFecha[1], 10);
+      const m = parseInt(mFecha[2], 10);
+      if (m >= 1 && m <= 12 && d >= 1 && d <= 31) {
+        const year = mFecha[3] ? parseInt(mFecha[3].length === 2 ? '20' + mFecha[3] : mFecha[3], 10) : new Date(todayStr()).getFullYear();
+        const dt = new Date(year, m - 1, d);
+        if (!isNaN(dt.getTime())) return dt.toISOString().slice(0, 10);
+      }
+    }
+
+    if (/pasado\s*ma(ñ|n)ana/.test(t)) {
+      const dt = new Date(); dt.setDate(dt.getDate() + 2);
+      return dt.toISOString().slice(0, 10);
+    }
+    if (/\bma(ñ|n)ana\b/.test(t)) {
+      const dt = new Date(); dt.setDate(dt.getDate() + 1);
+      return dt.toISOString().slice(0, 10);
+    }
+    if (/\bhoy\b/.test(t) || /en reparto/.test(t)) {
+      return todayStr();
+    }
+
+    const mRet = t.match(/retras\w*\D{0,12}(\d{1,3})\s*d(?:í|i)as?/) || t.match(/(\d{1,3})\s*d(?:í|i)as?\D{0,12}retras\w*/);
+    if (mRet) {
+      const n = parseInt(mRet[1], 10);
+      const dt = new Date(base); dt.setDate(dt.getDate() + n);
+      return dt.toISOString().slice(0, 10);
+    }
+
+    const mAdv = t.match(/adelant\w*\D{0,12}(\d{1,3})\s*d(?:í|i)as?/) || t.match(/(\d{1,3})\s*d(?:í|i)as?\D{0,12}(?:antes|adelant\w*)/);
+    if (mAdv) {
+      const n = parseInt(mAdv[1], 10);
+      const dt = new Date(base); dt.setDate(dt.getDate() - n);
+      return dt.toISOString().slice(0, 10);
+    }
+
+    return null;
+  }
+
+  function normalizeCarrierName(str){
+    return (str || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+  }
+
+  // Busca una plantilla de enlace para el transportista de 'a'. Prioriza el enlace guardado a mano en la ficha (trackingUrl);
+  // si no hay, intenta construirlo a partir del transportista + nº de seguimiento y las plantillas configuradas.
+  function buildTrackingUrl(a){
+    if (a.trackingUrl) return a.trackingUrl;
+    if (!a.transportista) return null;
+    const norm = normalizeCarrierName(a.transportista);
+    const all = Object.assign({}, DEFAULT_CARRIER_LINKS, carrierLinks);
+    let template = all[norm];
+    if (!template) {
+      const key = Object.keys(all).find(k => norm.includes(k) || k.includes(norm));
+      if (key) template = all[key];
+    }
+    if (!template) return null;
+    if (template.includes('{tracking}')) {
+      if (!a.trackingNumero) return null;
+      return template.replace('{tracking}', encodeURIComponent(a.trackingNumero));
+    }
+    return template;
+  }
+
+  function ymdCompact(fecha){ return fecha ? fecha.replace(/-/g, '') : ''; }
+  function addDaysCompact(fecha, days){
+    const d = new Date(fecha);
+    d.setDate(d.getDate() + days);
+    return d.toISOString().slice(0, 10).replace(/-/g, '');
+  }
+
+  // Genera un enlace que abre Google Calendar con el evento ya rellenado (el usuario solo tiene que confirmar "Guardar").
+  function googleCalendarUrl(a){
+    const fecha = fechaActual(a);
+    if (!fecha) return null;
+    const title = 'Recepción: ' + (a.proveedor || 'Envío') + (a.transportista ? ' (' + a.transportista + ')' : '');
+    const detailLines = [];
+    if (a.pedido) detailLines.push('Pedido: ' + a.pedido);
+    if (a.cantidad) detailLines.push('Cantidad: ' + a.cantidad);
+    if (a.responsable) detailLines.push('Responsable: ' + a.responsable);
+    if (a.trackingNumero) detailLines.push('Seguimiento: ' + a.trackingNumero);
+    const trackUrl = buildTrackingUrl(a);
+    if (trackUrl) detailLines.push('Enlace de seguimiento: ' + trackUrl);
+    const params = new URLSearchParams({
+      action: 'TEMPLATE',
+      text: title,
+      dates: ymdCompact(fecha) + '/' + addDaysCompact(fecha, 1),
+      details: detailLines.join('\n')
+    });
+    return 'https://calendar.google.com/calendar/render?' + params.toString();
+  }
+
+  async function loadCarrierLinks(){
+    try {
+      const res = await window.storage.get(CARRIER_LINKS_KEY, true);
+      carrierLinks = (res && res.value) ? JSON.parse(res.value) : {};
+    } catch (e) {
+      carrierLinks = {};
+    }
+  }
+
+  async function saveCarrierLinks(){
+    try {
+      await window.storage.set(CARRIER_LINKS_KEY, JSON.stringify(carrierLinks), true);
+    } catch (e) { /* se reintentará la próxima vez que se guarde */ }
+  }
+
+  function openCarrierLinksModal(){
+    const overlay = document.createElement('div');
+    overlay.className = 'rm-overlay';
+    overlay.id = 'rm-carriers-overlay';
+
+    const knownNames = Array.from(new Set(
+      arrivals.map(a => a.transportista).filter(Boolean).map(n => n.trim())
+    ));
+    const defaultLabels = { 'seur': 'SEUR', 'correos express': 'Correos Express', 'dhl': 'DHL', 'ups': 'UPS', 'redur': 'Redur', 'ontime': 'Ontime', 'dsv': 'DSV', 'gls': 'GLS' };
+    Object.keys(defaultLabels).forEach(k => {
+      if (!knownNames.some(n => normalizeCarrierName(n) === k)) knownNames.push(defaultLabels[k]);
+    });
+    knownNames.sort((x, y) => x.localeCompare(y));
+
+    const rows = knownNames.map(name => {
+      const norm = normalizeCarrierName(name);
+      const value = carrierLinks[norm] || DEFAULT_CARRIER_LINKS[norm] || '';
+      return `
+        <div class="rm-field">
+          <label>${escapeHtml(name)}</label>
+          <input type="text" data-carrier="${escapeAttr(norm)}" value="${escapeAttr(value)}" placeholder="https://.../seguimiento?codigo={tracking}" />
+        </div>
+      `;
+    }).join('');
+
+    overlay.innerHTML = `
+      <div class="rm-modal">
+        <h2>Enlaces de seguimiento por transportista</h2>
+        <p class="rm-notif-hint">Pega aquí la web pública de seguimiento de cada transportista. Si su web admite el número directamente en la URL, escribe <b>{tracking}</b> donde iría el número (se sustituirá automáticamente); si no, se abrirá esa página para pegarlo a mano. Ya hemos rellenado una plantilla orientativa para DHL y UPS — compruébala y ajusta las demás según lo que uséis vosotros.</p>
+        <div id="rm-carrier-rows">${rows}</div>
+        <div class="rm-modal-actions">
+          <div></div>
+          <div style="display:flex; gap:8px;">
+            <button type="button" class="rm-btn-ghost" id="rm-carriers-cancel">Cancelar</button>
+            <button type="button" class="rm-btn-primary" id="rm-carriers-save">Guardar</button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    root.appendChild(overlay);
+    overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+    document.getElementById('rm-carriers-cancel').addEventListener('click', () => overlay.remove());
+    document.getElementById('rm-carriers-save').addEventListener('click', () => {
+      overlay.querySelectorAll('#rm-carrier-rows input').forEach(inp => {
+        const norm = inp.dataset.carrier;
+        const val = inp.value.trim();
+        if (val) carrierLinks[norm] = val; else delete carrierLinks[norm];
+      });
+      saveCarrierLinks();
+      overlay.remove();
+      render();
+    });
   }
 
   function formatFecha(fecha){
@@ -428,6 +616,7 @@
       arrivals = [];
     }
     arrivals.forEach(a => { if (!a.historial) a.historial = []; });
+    await loadCarrierLinks();
     lastSnapshot = JSON.parse(JSON.stringify(arrivals));
     statusMsg.textContent = '';
     render();
@@ -479,7 +668,7 @@
       const newHist = a.historial ? a.historial.length : 0;
       if (newHist > prevHist) {
         const last = a.historial[a.historial.length - 1];
-        if (last.tipo === 'nota') {
+        if (last.tipo === 'nota' || last.tipo === 'estimacion') {
           new Notification('Actualización de seguimiento', { body: (a.proveedor || 'Envío') + ': ' + last.texto });
         }
       }
@@ -517,11 +706,11 @@
       if (!hay.includes(searchTerm.toLowerCase())) return false;
     }
     if (quickFilter === 'atrasados') {
-      const b = dateBadge(a.fecha, a.estado);
+      const b = dateBadge(fechaActual(a), a.estado);
       if (!b || !b.late) return false;
     }
     if (quickFilter === 'hoy') {
-      if (a.fecha !== todayStr() || a.estado === 'recibido') return false;
+      if (fechaActual(a) !== todayStr() || a.estado === 'recibido') return false;
     }
     if (quickFilter === 'actualizados') {
       const h = lastHistorial(a);
@@ -531,8 +720,8 @@
   }
 
   function renderAvisos(){
-    const atrasados = arrivals.filter(a => { const b = dateBadge(a.fecha, a.estado); return b && b.late; }).length;
-    const hoy = arrivals.filter(a => a.fecha === todayStr() && a.estado !== 'recibido').length;
+    const atrasados = arrivals.filter(a => { const b = dateBadge(fechaActual(a), a.estado); return b && b.late; }).length;
+    const hoy = arrivals.filter(a => fechaActual(a) === todayStr() && a.estado !== 'recibido').length;
     const actualizados = arrivals.filter(a => { const h = lastHistorial(a); return h && (Date.now() - new Date(h.ts).getTime()) <= 86400000; }).length;
 
     avisosEl.innerHTML = `
@@ -643,8 +832,9 @@
 
       const rows = items.map(a => {
         const es = ESTADOS.find(e => e.key === a.estado);
-        const badge = dateBadge(a.fecha, a.estado);
+        const badge = dateBadge(fechaActual(a), a.estado);
         const pt = a.fechaRecepcion ? puntualidad(a.fecha, a.fechaRecepcion) : null;
+        const est = (a.fechaEstimada && a.fechaEstimada !== a.fecha && a.estado !== 'recibido') ? puntualidad(a.fecha, a.fechaEstimada) : null;
         return `
           <div class="rm-carrier-row" data-id="${a.id}">
             <span class="rm-cr-fecha">${formatFecha(a.fecha)}</span>
@@ -656,6 +846,7 @@
               ${a.bultosEsperados ? (a.bultosEscaneados||0) + '/' + a.bultosEsperados + ' bultos' + ((a.bultosEsperados - (a.bultosEscaneados||0)) > 0 ? ' (faltan ' + (a.bultosEsperados - (a.bultosEscaneados||0)) + ')' : '') + ' · ' : ''}
               ${a.responsable ? escapeHtml(a.responsable) : ''}
               ${badge ? ' · ' + badge.text : ''}
+              ${est ? ' · <span style="color:' + (est.late ? '#A2402A' : '#2A6B41') + '">estimada ' + formatFecha(a.fechaEstimada) + ' (' + est.text + ')</span>' : ''}
               ${a.fechaRecepcion ? ' · recibido ' + formatFecha(a.fechaRecepcion) : ''}
               ${pt ? ' · <span style="color:' + (pt.late ? '#A2402A' : '#2A6B41') + '">' + pt.text + '</span>' : ''}
             </span>
@@ -693,16 +884,18 @@
     card.draggable = true;
     card.dataset.id = a.id;
 
-    const badge = dateBadge(a.fecha, a.estado);
+    const badge = dateBadge(fechaActual(a), a.estado);
     const idx = ESTADOS.findIndex(x => x.key === a.estado);
     const lastH = lastHistorial(a);
     const pt = a.fechaRecepcion ? puntualidad(a.fecha, a.fechaRecepcion) : null;
+    const est = (a.fechaEstimada && a.fechaEstimada !== a.fecha && a.estado !== 'recibido') ? puntualidad(a.fecha, a.fechaEstimada) : null;
 
     card.innerHTML = `
       <div class="rm-card-top">
         <span class="rm-card-fecha">${formatFecha(a.fecha)}</span>
         ${badge ? '<span class="rm-badge' + (badge.late ? ' rm-late' : '') + '">' + badge.text + '</span>' : ''}
       </div>
+      ${est ? '<p class="rm-card-meta" style="' + (est.late ? 'color:#A2402A;' : 'color:#2A6B41;') + '"><b>Estimada:</b> ' + formatFecha(a.fechaEstimada) + ' (' + est.text + ')</p>' : ''}
       <p class="rm-card-proveedor">${escapeHtml(a.proveedor || '(sin proveedor)')}</p>
       <p class="rm-card-meta">
         ${a.transportista ? '<b>Transportista:</b> ' + escapeHtml(a.transportista) + '<br/>' : ''}
@@ -714,7 +907,7 @@
       ${a.bultosEsperados ? '<span class="rm-chip" style="' + ((a.bultosEscaneados||0) >= a.bultosEsperados ? 'background:#EAF5EE;color:#2A6B41;' : '') + '">Bultos: ' + (a.bultosEscaneados||0) + '/' + a.bultosEsperados + '</span>' : ''}
       ${a.bultosEsperados && (a.bultosEsperados - (a.bultosEscaneados||0)) > 0 ? '<span class="rm-chip" style="background:var(--amber-soft);color:#8A5A11;">Faltan ' + (a.bultosEsperados - (a.bultosEscaneados||0)) + '</span>' : ''}
       ${a.incidencias && a.incidencias.length ? '<span class="rm-chip" style="background:#FBEBE7;color:#A2402A;">⚠️ ' + a.incidencias.length + ' incidencia' + (a.incidencias.length>1?'s':'') + '</span>' : ''}
-      ${a.trackingUrl ? '<br/><a class="rm-track-link" href="' + escapeAttr(a.trackingUrl) + '" target="_blank" rel="noopener">Ver seguimiento ↗</a>' : ''}
+      ${(function(){ const url = buildTrackingUrl(a); return url ? '<br/><a class="rm-track-link" href="' + escapeAttr(url) + '" target="_blank" rel="noopener">Ver seguimiento ↗</a>' : ''; })()}
       ${a.fechaRecepcion ? '<p class="rm-card-meta"><b>Recibido:</b> ' + formatFecha(a.fechaRecepcion) + (pt ? ' <span style="color:' + (pt.late ? '#A2402A' : '#2A6B41') + '">(' + pt.text + ')</span>' : '') + '</p>' : ''}
       ${lastH ? '<div class="rm-card-update">Última novedad ' + formatDateTime(lastH.ts) + ' (' + timeAgo(lastH.ts) + '): ' + escapeHtml(lastH.texto) + '</div>' : ''}
       ${a.notas ? '<div class="rm-card-notas">' + escapeHtml(a.notas) + '</div>' : ''}
@@ -841,7 +1034,9 @@
           <div class="rm-field">
             <label>Enlace de seguimiento (opcional)</label>
             <input type="url" name="trackingUrl" placeholder="https://..." value="${a ? escapeAttr(a.trackingUrl || '') : ''}" />
+            <p class="rm-notif-hint" style="margin-top:4px;">Déjalo en blanco y, si el transportista tiene un enlace configurado en "🔗 Transportistas" (cabecera), se generará solo con el nº de seguimiento.</p>
           </div>
+          ${a ? '<button type="button" class="rm-btn-ghost" id="rm-add-gcal" style="margin-bottom:10px;">📅 Añadir a Google Calendar</button>' : ''}
           ${a && a.bultosEsperados ? '<p class="rm-notif-hint">Recepción: ' + (a.bultosEscaneados || 0) + ' / ' + a.bultosEsperados + ' bultos escaneados. Usa "📦 Escanear recepción" en la cabecera para registrar bultos.</p>' : ''}
 
           <div class="rm-row2">
@@ -871,12 +1066,18 @@
           <button type="button" class="rm-btn-warn" id="rm-open-incidencia" style="margin-bottom:10px;">⚠️ Registrar incidencia</button>
 
           <h3>Historial de novedades</h3>
+          ${(function(){
+              if (!a.fechaEstimada || a.fechaEstimada === a.fecha) return '';
+              const p = puntualidad(a.fecha, a.fechaEstimada);
+              return '<p class="rm-notif-hint" style="' + (p && p.late ? 'color:#A2402A;' : 'color:#2A6B41;') + '"><b>Fecha estimada actual: ' + formatFecha(a.fechaEstimada) + (p ? ' (' + p.text + ' respecto a lo previsto)' : '') + '</b></p>';
+            })()}
           ${historialHtml}
           <div class="rm-add-update">
-            <input type="text" id="rm-update-text" placeholder="ej. Salió de aduana, en reparto..." />
+            <input type="text" id="rm-update-text" placeholder="ej. Salió de aduana, retraso de 2 días..." />
+            <input type="date" id="rm-update-fecha-estimada" title="Nueva fecha estimada de llegada (se rellena sola si la detecta en el texto)" />
             <button type="button" id="rm-add-update-btn">Añadir</button>
           </div>
-          <p class="rm-notif-hint">Cada actualización queda registrada con fecha y hora, y avisa a quien tenga los avisos activados.</p>
+          <p class="rm-notif-hint">Si escribes algo como "retraso de 2 días", "en reparto", "mañana" o una fecha, la fecha estimada se rellena sola — siempre puedes cambiarla a mano. Cada actualización queda registrada con fecha y hora, y avisa a quien tenga los avisos activados.</p>
           ` : ''}
 
           <div class="rm-modal-actions">
@@ -911,15 +1112,42 @@
     if (openIncBtn) openIncBtn.addEventListener('click', () => {
       openIncidenciaModal(editingId, () => { closeModal(); openModal(editingId); });
     });
+    const gcalBtn = document.getElementById('rm-add-gcal');
+    if (gcalBtn) gcalBtn.addEventListener('click', () => {
+      const item = arrivals.find(x => x.id === editingId);
+      const url = item ? googleCalendarUrl(item) : null;
+      if (url) window.open(url, '_blank', 'noopener');
+    });
+
+    const updateTextInput = document.getElementById('rm-update-text');
+    const updateFechaInput = document.getElementById('rm-update-fecha-estimada');
+    let fechaTocadaAMano = false;
+    if (updateFechaInput) {
+      updateFechaInput.addEventListener('input', () => { fechaTocadaAMano = true; });
+    }
+    if (updateTextInput) {
+      updateTextInput.addEventListener('input', () => {
+        if (fechaTocadaAMano || !updateFechaInput) return;
+        const item = arrivals.find(x => x.id === editingId);
+        if (!item) return;
+        const detectada = parseEstimacion(updateTextInput.value, fechaActual(item));
+        if (detectada) updateFechaInput.value = detectada;
+      });
+    }
 
     const addUpdateBtn = document.getElementById('rm-add-update-btn');
     if (addUpdateBtn) addUpdateBtn.addEventListener('click', () => {
-      const input = document.getElementById('rm-update-text');
-      const texto = input.value.trim();
-      if (!texto) return;
+      const texto = updateTextInput.value.trim();
+      const nuevaFecha = updateFechaInput ? updateFechaInput.value : '';
+      if (!texto && !nuevaFecha) return;
       const item = arrivals.find(x => x.id === editingId);
       if (!item) return;
-      addHistorial(item, 'nota', texto);
+      if (texto) addHistorial(item, 'nota', texto);
+      const fechaPrevia = fechaActual(item);
+      if (nuevaFecha && nuevaFecha !== fechaPrevia) {
+        item.fechaEstimada = nuevaFecha;
+        addHistorial(item, 'estimacion', 'Fecha estimada actualizada a ' + formatFecha(nuevaFecha) + (fechaPrevia ? ' (antes ' + formatFecha(fechaPrevia) + ')' : ''));
+      }
       persist();
       closeModal();
       openModal(editingId);
@@ -1345,6 +1573,7 @@
   });
 
   document.getElementById('rm-open-scan').addEventListener('click', openScanModal);
+  document.getElementById('rm-open-carriers').addEventListener('click', openCarrierLinksModal);
   document.getElementById('rm-open-add').addEventListener('click', () => openModal(null));
   searchInput.addEventListener('input', e => { searchTerm = e.target.value; render(); });
   respSelect.addEventListener('change', e => { respFilter = e.target.value; render(); });
