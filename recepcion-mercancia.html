@@ -1507,6 +1507,16 @@
       const descripcion = document.getElementById('rm-inc-desc').value.trim();
       if (!descripcion) { alert('Describe brevemente el daño antes de guardar.'); return; }
       const firmante = document.getElementById('rm-inc-firmante').value.trim();
+
+      const faltan = [];
+      if (pendingFiles.length === 0) faltan.push('fotos del bulto dañado');
+      if (sigPad.isEmpty()) faltan.push('firma del repartidor');
+      if (!firmante) faltan.push('nombre del repartidor');
+      if (faltan.length) {
+        const continuar = confirm('Falta por rellenar: ' + faltan.join(', ') + '.\n\nPulsa "Aceptar" para continuar y guardar la incidencia sin esos datos, o "Cancelar" para volver y rellenarlos.');
+        if (!continuar) return;
+      }
+
       const saveBtn = document.getElementById('rm-inc-save');
       saveBtn.disabled = true;
       saveBtn.textContent = 'Guardando...';
