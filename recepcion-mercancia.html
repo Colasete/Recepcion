@@ -301,6 +301,7 @@
       <button class="rm-add-btn" id="rm-open-scan" style="background:#fff; color:var(--navy);">📦 Escanear recepción</button>
       <button class="rm-add-btn" id="rm-open-carriers" style="background:#fff; color:var(--navy);">🔗 Transportistas</button>
       <button class="rm-add-btn" id="rm-open-emails" style="background:#fff; color:var(--navy);">✉️ Emails</button>
+      <button class="rm-add-btn" id="rm-open-history" style="background:#fff; color:var(--navy);">🗂️ Recepciones</button>
       <button class="rm-add-btn" id="rm-open-add">+ Nueva llegada</button>
     </div>
   </div>
@@ -533,6 +534,91 @@
     try {
       await window.storage.set(AVISO_EMAILS_KEY, JSON.stringify(avisoEmails), true);
     } catch (e) { /* se reintentará la próxima vez que se guarde */ }
+  }
+
+  function openReceptionsModal(){
+    const overlay = document.createElement('div');
+    overlay.className = 'rm-overlay';
+    overlay.id = 'rm-history-overlay';
+
+    overlay.innerHTML = `
+      <div class="rm-modal">
+        <h2>Recepciones hechas</h2>
+        <div class="rm-row2">
+          <div class="rm-field">
+            <label>Buscar (proveedor, transportista o nº de seguimiento)</label>
+            <input type="text" id="rm-hist-search" placeholder="ej. SEUR, Acme, 194433..." />
+          </div>
+          <div class="rm-field">
+            <label>Día de recepción</label>
+            <input type="date" id="rm-hist-date" />
+          </div>
+        </div>
+        <button type="button" class="rm-btn-ghost" id="rm-hist-clear" style="margin-bottom:10px;">Quitar filtros</button>
+        <div id="rm-hist-results"></div>
+      </div>
+    `;
+
+    root.appendChild(overlay);
+    overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+
+    const searchInput = document.getElementById('rm-hist-search');
+    const dateInput = document.getElementById('rm-hist-date');
+    const resultsEl = document.getElementById('rm-hist-results');
+
+    function renderResults(){
+      const term = searchInput.value.trim().toLowerCase();
+      const day = dateInput.value;
+      const recibidos = arrivals
+        .filter(a => a.estado === 'recibido')
+        .filter(a => {
+          if (day && a.fechaRecepcion !== day) return false;
+          if (term) {
+            const hay = ((a.proveedor||'') + ' ' + (a.transportista||'') + ' ' + (a.trackingNumero||'')).toLowerCase();
+            if (!hay.includes(term)) return false;
+          }
+          return true;
+        })
+        .sort((a, b) => (b.fechaRecepcion || '').localeCompare(a.fechaRecepcion || ''));
+
+      if (!recibidos.length) {
+        resultsEl.innerHTML = '<p class="rm-notif-hint">No hay recepciones que coincidan con esos filtros.</p>';
+        return;
+      }
+
+      resultsEl.innerHTML = '<div class="rm-carrier-rows">' + recibidos.map(a => {
+        const pt = a.fechaRecepcion && a.fecha ? puntualidad(a.fecha, a.fechaRecepcion) : null;
+        const trackUrl = buildTrackingUrl(a);
+        return `
+          <div class="rm-carrier-row" data-id="${a.id}">
+            <span class="rm-cr-fecha">${formatFecha(a.fechaRecepcion)}</span>
+            <span class="rm-cr-proveedor">${escapeHtml(a.proveedor || '(sin proveedor)')}</span>
+            <span class="rm-cr-meta">
+              ${a.transportista ? escapeHtml(a.transportista) + ' · ' : ''}
+              ${a.trackingNumero ? 'Seg: ' + escapeHtml(a.trackingNumero) + ' · ' : ''}
+              ${a.pedido ? 'Pedido ' + escapeHtml(a.pedido) + ' · ' : ''}
+              ${a.responsable ? escapeHtml(a.responsable) + ' · ' : ''}
+              ${pt ? '<span style="color:' + (pt.late ? '#A2402A' : '#2A6B41') + '">' + pt.text + '</span>' : ''}
+            </span>
+            ${trackUrl ? '<a class="rm-track-btn rm-track-btn-sm" href="' + escapeAttr(trackUrl) + '" target="_blank" rel="noopener" onclick="event.stopPropagation();">📍 Seguimiento ↗</a>' : ''}
+          </div>
+        `;
+      }).join('') + '</div>';
+
+      resultsEl.querySelectorAll('.rm-carrier-row').forEach(row => {
+        row.addEventListener('click', () => { overlay.remove(); openModal(row.dataset.id); });
+      });
+    }
+
+    searchInput.addEventListener('input', renderResults);
+    dateInput.addEventListener('input', renderResults);
+    document.getElementById('rm-hist-clear').addEventListener('click', () => {
+      searchInput.value = '';
+      dateInput.value = '';
+      renderResults();
+    });
+
+    renderResults();
   }
 
   function openEmailsModal(){
@@ -1664,6 +1750,7 @@
   document.getElementById('rm-open-scan').addEventListener('click', openScanModal);
   document.getElementById('rm-open-carriers').addEventListener('click', openCarrierLinksModal);
   document.getElementById('rm-open-emails').addEventListener('click', openEmailsModal);
+  document.getElementById('rm-open-history').addEventListener('click', openReceptionsModal);
   document.getElementById('rm-open-add').addEventListener('click', () => openModal(null));
   searchInput.addEventListener('input', e => { searchTerm = e.target.value; render(); });
   respSelect.addEventListener('change', e => { respFilter = e.target.value; render(); });
